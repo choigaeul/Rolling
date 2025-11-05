@@ -2,7 +2,7 @@ import React from 'react'
 
 function Badge() {
   return (
-    <div>Badge</div>
+    <><div>sss</div></>
   )
 }
 
