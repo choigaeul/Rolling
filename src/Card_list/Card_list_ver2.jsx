@@ -11,8 +11,8 @@ function CardList2() {
           relative overflow-hidden
           w-[275px] h-[260px] rounded-[16px] box-border
           pt-[30px] pr-6 pb-5 pl-6
-          bg-[rgba(220,185,255,0.4)]
-          border border-[rgba(128,128,128,0.2)]
+          bg-white
+          border border-grayscale-500/20
           shadow-[0_2px_13px_rgba(0,0,0,0.08)]
           bg-cover bg-center
         "
@@ -22,7 +22,7 @@ function CardList2() {
         }}
       >
         <div className="flex flex-col gap-3 relative z-[1]">
-          <div className="text-[24px] font-bold">To.Sowon</div>
+          <div className="text-24-bold text-white">To.Sowon</div>
 
           <div className="flex items-center">
             <img
@@ -44,7 +44,7 @@ function CardList2() {
               className="
                 inline-flex items-center justify-center
                 w-[33px] h-7 py-[7px] px-[5px]
-                rounded-full bg-white text-[12px] font-semibold text-gray-500
+                rounded-full bg-white text-12-regular text-grayscale-500
                 ml-[-10px] relative z-0
               "
             >
@@ -52,8 +52,8 @@ function CardList2() {
             </span>
           </div>
 
-          <div className="mb-5 text-[16px] leading-[1.5]">
-            <span className="font-bold">30명</span>이 작성했어요!
+          <div className="mb-5 text-white text-16-regular leading-[1.5]">
+            <span className="text-16-bold">30</span>명이 작성했어요!
           </div>
         </div>
 
@@ -61,14 +61,13 @@ function CardList2() {
           className="
             flex items-end
             mt-[17px] pt-[18px]
-            border-t border-[rgba(128,128,128,0.4)]
+            border-t border-grayscale-500/40
             absolute z-[1]
           "
-          
         >
           <div
             className="
-              w-[65px] h-9 mr-2
+              w-[66px] h-9 mr-2
               bg-black/60
               flex justify-center items-center
               rounded-[32px] px-3 py-2
@@ -79,7 +78,7 @@ function CardList2() {
           </div>
           <div
             className="
-              w-[65px] h-9 mr-2
+              w-[66px] h-9 mr-2
               bg-black/60
               flex justify-center items-center
               rounded-[32px] px-3 py-2
@@ -90,7 +89,7 @@ function CardList2() {
           </div>
           <div
             className="
-              w-[65px] h-9
+              w-[66px] h-9
               bg-black/60
               flex justify-center items-center
               rounded-[32px] px-3 py-2

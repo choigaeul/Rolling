@@ -29,7 +29,7 @@ function CardList() {
         />
 
         <div className="flex flex-col gap-3 z-[1] relative">
-          <div className="text-[24px] font-bold">To.Sowon</div>
+          <div className="text-24-bold">To.Sowon</div>
 
           <div className="flex items-center">
             <img
@@ -51,7 +51,7 @@ function CardList() {
               className="
                 inline-flex items-center justify-center
                 w-[33px] h-7 py-[7px] px-[5px]
-                rounded-full bg-white text-[12px] font-semibold text-gray-500
+                rounded-full bg-white text-12-regular text-gray-500
                 ml-[-10px] relative z-0
               "
             >
@@ -59,8 +59,8 @@ function CardList() {
             </span>
           </div>
 
-          <div className="mb-5 text-[16px] leading-[1.5]">
-            <span className="font-bold">30</span>명이 작성했어요!
+          <div className="mb-5 text-16-regular leading-[1.5]">
+            <span className="text-16-bold">30</span>명이 작성했어요!
           </div>
         </div>
 
