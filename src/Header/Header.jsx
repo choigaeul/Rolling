@@ -15,7 +15,7 @@ function Header() {
           {/* "롤링 페이퍼 만들기" 버튼 영역 */}
           <div>
             <button
-              className="border border-grayscale-300 bg-white rounded-lg text-16-bold h-[42px] w-[149px]">
+              className="border border-grayscale-300 bg-white rounded-lg text-16-bold h-[42px] w-[149px] hover:bg-gray-100">
               롤링 페이퍼 만들기
             </button>
           </div>
