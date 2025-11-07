@@ -36,7 +36,7 @@ module.exports = {
           400: '#60CF37',
           500: '#2BA600',
         },
-        grayscale: {
+        gray: {
           100: '#F6F6F6',
           200: '#EEEEEE',
           300: '#CCCCCC',
@@ -47,7 +47,7 @@ module.exports = {
           800: '#2B2B2B',
           900: '#181818',
         },
-        white:'#B9B9B9',
+        white:'#fffff',
         black:'#000000',
         error: '#DC3A3A',
         surface: '#F6F8FF',
