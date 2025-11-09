@@ -7,7 +7,7 @@ function Header() {
       <header className='bg-white sticky top-0 z-50 max-w-[1119px] h-[64px]'>
         <div className="w-full h-full flex items-center justify-between">
           {/* Rolling 로고 영역 */}
-          <div className='flex items-center justify-center justify-items-center z-60 w-[106.82px] h-[30px]'>
+          <div className='flex items-center justify-center justify-items-center z-60 h-[30px]'>
             {/* 로고 아이콘 */}
             <a href="/"><img src={RollingIcon} alt="Rolling 로고" /></a>
           </div>
@@ -16,7 +16,7 @@ function Header() {
           <div>
             <button
               className="border border-grayscale-300 bg-white rounded-lg text-16-bold h-[42px] w-[149px] hover:bg-gray-100">
-              롤링 페이퍼 만들기
+              <a href="/">롤링 페이퍼 만들기</a>
             </button>
           </div>
         </div>

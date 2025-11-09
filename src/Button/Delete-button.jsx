@@ -6,7 +6,7 @@ function Deletebutton({ text = "버튼", disabled = false }) {
     <>
       <button
         disabled={disabled}
-        className="w-[92px] h-[39px] bg-purple-500 rounded-md text-18-bold text-white 
+        className="w-[92px] h-[39px] bg-purple-500 rounded-md text-16-regular text-white 
         hover:bg-purple-700 
         disabled:bg-gray-300 
         active:bg-purple-800 
