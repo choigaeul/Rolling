@@ -1,7 +1,8 @@
 import React from 'react'
 import deleted from '../img/deleted.png';
 
-function deleteButton() {
+
+function DeleteButton() {
   return (
     <>
         <div className="w-[36px] h-[36px] inline-block bg-white border-gray-300 rounded-md border border-solid 
@@ -15,4 +16,4 @@ function deleteButton() {
   )
 }
 
-export default deleteButton
+export default DeleteButton

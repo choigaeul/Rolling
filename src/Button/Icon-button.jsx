@@ -1,7 +1,8 @@
 import React from 'react'
 import Emoji from '../img/add-24.png';
 
-function iconButton() {
+
+function IconButton() {
   return (
     <>
     <button className="flex items-center justify-center justify-items-center gap-1 bg-white border border-gray-300 rounded-md w-[88px] h-[36px]
@@ -17,4 +18,4 @@ function iconButton() {
   );
 }
 
-export default iconButton;
+export default IconButton;
