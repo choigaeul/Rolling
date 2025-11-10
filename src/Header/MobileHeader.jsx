@@ -17,12 +17,11 @@ function MobileHeader() {
 
   // 공유 버튼의 클래스를 조건부로 정의
   const shareButtonClasses = `
-     flex items-center justify-center 
-     border border-gray-300 w-[36px] h-[32px] rounded-md 
-     
-     // 드롭다운이 열려있을 때 적용
-     ${showShareMenu ? "border-gray-500" : "bg-white hover:bg-gray-100"} 
-   `;
+      flex items-center justify-center 
+      border border-gray-300 w-[36px] h-[32px] rounded-md 
+      // 드롭다운이 열려있을 때 적용
+      ${showShareMenu ? "border-gray-500" : "bg-white hover:bg-gray-100"} 
+    `;
   return (
     <>
     {/* 수신자 헤더 */}
