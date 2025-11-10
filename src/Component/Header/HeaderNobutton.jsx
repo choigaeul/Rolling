@@ -1,5 +1,5 @@
 import React from "react";
-import RollingIcon from "../img/logo.svg";
+import RollingIcon from "../../img/logo.svg";
 // import Deletebutton from "../Button/Delete-button"
 
 function HeaderNobutton() {
