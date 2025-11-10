@@ -1,13 +1,9 @@
-import logo from './logo.svg';
-import './App.css';
-import Test from './test.jsx';
+import "./App.css";
 
 function App() {
   return (
     <>
-      <Test />
     </>
-
   );
 }
 
