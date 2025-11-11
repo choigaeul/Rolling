@@ -75,8 +75,8 @@ function MessageHeader() {
     `;
 
   return (
-    <div className="border-b border-gray-200">
-      <div className="flex items-center justify-between w-[1200px] h-[68px] bg-white relative mx-auto">
+    <div className="border-b border-gray-200 mx-auto">
+      <div className="flex items-center justify-between w-[1200px] h-[68px] bg-white relative">
         {/* 왼쪽: 수신자 */}
         <div className="text-gray-800 text-28-bold">To. Ashley Kim</div>
 

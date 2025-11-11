@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Header from "../Header/Header";
-import MessageHeader from "../Header/MessageHeader";
-import DeleteButton from "../Button/Delete-button";
-import Modal from "../Modal/Modal";
+import Header from "../Component/Header/Header.jsx";
+import MessageHeader from "../Component/Header/MessageHeader.jsx";
+import DeleteButton from "../Component/Button/Delete-button.jsx";
+import Modal from "../Component/Modal/Modal.jsx";
 
 // 🚨 정적인 메시지 데이터 (ID 추적 및 기타 정보 추가)
 const STATIC_MESSAGES = Array.from({ length: 9 }).map((_, index) => ({
@@ -127,7 +127,7 @@ function OwnerPage() {
           <div className="fixed top-0 left-0 w-full bg-white shadow-sm z-30">
             <div className="mx-auto">
               <Header />
-              <div className="flex justify-between items-center px-6">
+              <div className="flex justify-between items-center px-6 mx-auto">
                 <MessageHeader />
               </div>
             </div>
