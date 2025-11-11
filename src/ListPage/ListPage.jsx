@@ -8,7 +8,7 @@ import RightArrow from '../Component/Button/Right-arrow'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
 import styles from './ListPage.module.css'
-import { fetchRecipients } from '../api/recipients'
+import { fetchRecipients, fetchRecipientReactions, normalizeReactionsResponse } from '../api/recipients'
 
 const CARDS_PER_VIEW = 4
 const CARDS_PER_GROUP = 2
@@ -196,8 +196,23 @@ function ListPage() {
         const data = await fetchRecipients({ limit: 12 })
         if (!active) return
         const results = Array.isArray(data?.results) ? data.results : []
-        setPopularCards(results)
-        setRecentCards([...results].reverse())
+
+        const enriched = await Promise.all(
+          results.map(async (item) => {
+            if (!item?.id) return { ...item, reactions: [] }
+            try {
+              const reactionData = await fetchRecipientReactions(item.id)
+              const normalized = normalizeReactionsResponse(reactionData)
+              return { ...item, reactions: normalized }
+            } catch (err) {
+              console.error('반응 데이터를 불러오지 못했습니다:', err)
+              return { ...item, reactions: [] }
+            }
+          })
+        )
+
+        setPopularCards(enriched)
+        setRecentCards([...enriched].reverse())
       } catch (err) {
         if (!active) return
         setError(err)

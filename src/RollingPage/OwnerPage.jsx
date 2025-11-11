@@ -4,7 +4,15 @@ import Header from "../Component/Header/Header";
 import MessageHeader from "../Component/Header/MessageHeader";
 import DeleteButton from "../Component/Button/Delete-button";
 import Modal from "../Component/Modal/Modal";
-import { fetchRecipient, fetchRecipientMessages, deleteRecipient } from "../api/recipients"; // 대상/메시지 조회 API 함수 불러오기
+import {
+  fetchRecipient,
+  fetchRecipientMessages,
+  fetchRecipientReactions,
+  deleteRecipient,
+  reactToRecipient,
+  normalizeReactionsResponse,
+  EMOJI_TO_ALIAS
+} from "../api/recipients"; // 대상/메시지 조회 API 함수 불러오기
 
 // 🚨 정적인 메시지 데이터 (ID 추적 및 기타 정보 추가)
 const STATIC_MESSAGES = Array.from({ length: 3 }).map((_, index) => ({
@@ -30,6 +38,7 @@ function OwnerPage({ recipientId }) {
   const [messages, setMessages] = useState([]) // 메시지 목록 상태
   const [loading, setLoading] = useState(false) // 로딩 여부 표시
   const [error, setError] = useState(null) // 에러 정보를 저장
+  const [reactions, setReactions] = useState([])
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState(null)
 
@@ -52,9 +61,10 @@ function OwnerPage({ recipientId }) {
         setLoading(true) // API 호출 시작 표시
         setError(null) // 이전 에러 초기화
 
-        const [recipientData, messageData] = await Promise.all([
+        const [recipientData, messageData, reactionData] = await Promise.all([
           fetchRecipient(currentRecipientId), // 대상 상세 정보 요청
-          fetchRecipientMessages(currentRecipientId, { limit: 20 }) // 메시지 목록 요청
+          fetchRecipientMessages(currentRecipientId, { limit: 20 }), // 메시지 목록 요청
+          fetchRecipientReactions(currentRecipientId)
         ])
 
         if (!active) return // 컴포넌트가 언마운트되면 상태 업데이트 중단
@@ -76,11 +86,15 @@ function OwnerPage({ recipientId }) {
         )
 
         setMessages(normalizedMessages)
+
+        const normalizedReactions = normalizeReactionsResponse(reactionData)
+        setReactions(normalizedReactions)
       } catch (err) {
         if (!active) return // 언마운트 시 상태 업데이트 중단
         setError(err) // 에러 저장
         setRecipient(null) // 대상 정보 초기화
         setMessages(STATIC_MESSAGES) // 샘플 데이터로 대체
+        setReactions([])
       } finally {
         if (active) setLoading(false) // 로딩 종료
       }
@@ -234,6 +248,22 @@ function OwnerPage({ recipientId }) {
   const isUsingFallbackMessages = messages === STATIC_MESSAGES
   const hasMessages = Array.isArray(messages) && messages.length > 0
 
+  const handleAddReaction = async (emoji) => {
+    if (!currentRecipientId) return
+    try {
+      const alias = EMOJI_TO_ALIAS[emoji]
+      if (!alias) {
+        alert('현재 지원하지 않는 이모지입니다.')
+        return
+      }
+      await reactToRecipient(currentRecipientId, { emoji: alias, type: 'increase' })
+      const updated = await fetchRecipientReactions(currentRecipientId)
+      setReactions(normalizeReactionsResponse(updated))
+    } catch (err) {
+      console.error('반응 추가 실패:', err)
+    }
+  }
+
   return (
     <>
       <div className="overflow-y-scroll owner-page-scrollbar-hide">
@@ -247,6 +277,8 @@ function OwnerPage({ recipientId }) {
                   recipient={recipient}
                   messageCount={totalMessageCount}
                   topAvatars={topAvatars}
+                  reactions={reactions}
+                  onAddReaction={handleAddReaction}
                 />
               </div>
             </div>

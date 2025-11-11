@@ -4,6 +4,10 @@ import { ReactComponent as PlusIcon } from "../../img/add-24.svg";
 import { ReactComponent as ArrowIcon } from "../../img/arrow_down.svg";
 import EmojiPicker from "emoji-picker-react";
 import { Link } from "react-router-dom";
+import { EMOJI_TO_ALIAS } from "../../api/recipients";
+
+const ALLOWED_EMOJIS = Object.keys(EMOJI_TO_ALIAS);
+const ALLOWED_EMOJI_SET = new Set(ALLOWED_EMOJIS);
 
 function MessageHeader({
   recipient,
@@ -38,6 +42,12 @@ function MessageHeader({
         : emojiData?.emoji || emojiData?.native;
 
     if (!selectedEmoji) return;
+
+    if (!ALLOWED_EMOJI_SET.has(selectedEmoji)) {
+      alert('현재 지원하지 않는 이모지입니다. 준비된 이모지를 사용해 주세요.');
+      setShowEmojiPicker(false);
+      return;
+    }
 
     let updated;
     setReactions((prev) => {

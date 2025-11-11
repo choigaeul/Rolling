@@ -6,9 +6,7 @@ import pattern01 from '../Card_list/assets/pattern01.svg'
 import pattern02 from '../Card_list/assets/pattern02.svg'
 import pattern03 from '../Card_list/assets/pattern03.svg'
 import pattern04 from '../Card_list/assets/pattern04.svg'
-
-const DEFAULT_BACKGROUND =
-  "https://mblogthumb-phinf.pstatic.net/MjAyMTAzMDVfOTYg/MDAxNjE0OTU1MTgyMzYz.ozwJXDtUw0V_Gniz6i7qgDOkNs09MX-rJdCcaw6AAeAg.DZivXhGnQDUUx7kgkRXNOEI0DEltAo6p9Jk9SDBbxRcg.JPEG.sosohan_n/IMG_3725.JPG?type=w800"
+import { REACTION_ALIAS_TO_EMOJI } from '../../api/recipients'
 
 const COLOR_STYLE_MAP = {
   beige: { hex: '#FFE2AD', pattern: pattern02 },
@@ -16,6 +14,9 @@ const COLOR_STYLE_MAP = {
   blue: { hex: '#B1E4FF', pattern: pattern03 },
   green: { hex: '#D0F5C3', pattern: pattern04 }
 }
+
+const DEFAULT_BACKGROUND =
+  "https://mblogthumb-phinf.pstatic.net/MjAyMTAzMDVfOTYg/MDAxNjE0OTU1MTgyMzYz.ozwJXDtUw0V_Gniz6i7qgDOkNs09MX-rJdCcaw6AAeAg.DZivXhGnQDUUx7kgkRXNOEI0DEltAo6p9Jk9SDBbxRcg.JPEG.sosohan_n/IMG_3725.JPG?type=w800"
 
 function CardList({ recipient }) {
   //API에서 받은 recipient.name이 있으면 그 이름을, 없으면 기존 텍스트 To.Sowon을 그대로 보여줘요!
@@ -53,6 +54,29 @@ function CardList({ recipient }) {
   const infoClass = isImageCard
     ? 'mb-5 text-16-regular leading-[1.5] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]'
     : 'mb-5 text-16-regular leading-[1.5] text-gray-700'
+
+  const topReactions = useMemo(() => {
+    if (!Array.isArray(recipient?.reactions)) return []
+    return [...recipient.reactions]
+      .filter((item) => item && item.emoji)
+      .map((item, index) => {
+        const emojiValue = item.emoji
+        const resolvedEmoji = REACTION_ALIAS_TO_EMOJI[emojiValue] || emojiValue
+
+        return {
+          id: item.id ?? `${emojiValue}-${index}`,
+          emoji: resolvedEmoji,
+          count: typeof item.count === 'number' ? item.count : Number(item.count) || 0
+        }
+      })
+      .filter((item) => item.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+  }, [recipient?.reactions])
+
+  const reactionBadgeClass = isImageCard
+    ? 'bg-black/60 text-white'
+    : 'bg-white/80 text-gray-900 border border-white/60 shadow-sm'
 
   return (
     <div
@@ -121,55 +145,37 @@ function CardList({ recipient }) {
 
         <div className={infoClass}>
           <span className={`text-16-bold ${isImageCard ? 'drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]' : 'text-gray-900'}`}>
-            {messageCount}
+            {messageCount} 
           </span>
           명이 작성했어요!
         </div>
       </div>
 
-      <div
-        className="
-          flex items-end
-          mt-[17px] pt-[18px]
-          max-[360px]:mt-4 max-[360px]:pt-[14px]
-          border-t border-grayscale-500/40
-          absolute z-[1]
-        "
-      >
+      {topReactions.length > 0 && (
         <div
           className="
-            w-[66px] h-9 mr-2
-            bg-black/60
-            flex justify-center items-center
-            rounded-[32px] px-3 py-2
-            text-white
+            flex items-end gap-2
+            mt-[17px] pt-[18px]
+            max-[360px]:mt-4 max-[360px]:pt-[14px]
+            border-t border-grayscale-500/40
+            absolute z-[1]
           "
         >
-          👍&nbsp;20
+          {topReactions.map((reaction) => (
+            <div
+              key={reaction.id}
+              className={`
+                min-w-[66px] h-9 px-3 py-2 flex justify-center items-center
+                rounded-[32px] text-16-regular gap-1
+                ${reactionBadgeClass}
+              `}
+            >
+              <span>{reaction.emoji}</span>
+              <span>{reaction.count}</span>
+            </div>
+          ))}
         </div>
-        <div
-          className="
-            w-[66px] h-9 mr-2
-            bg-black/60
-            flex justify-center items-center
-            rounded-[32px] px-3 py-2
-            text-white
-          "
-        >
-          😍&nbsp;12
-        </div>
-        <div
-          className="
-            w-[66px] h-9
-            bg-black/60
-            flex justify-center items-center
-            rounded-[32px] px-3 py-2
-            text-white
-          "
-        >
-          😢&nbsp;7
-        </div>
-      </div>
+      )}
     </div>
   )
 }
