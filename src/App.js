@@ -1,11 +1,12 @@
 import "./App.css";
-import OwnerPage from "../src/RollingPage/OwnerPage.jsx"
-
+import OwnerPage from "./RollingPage/OwnerPage";
+// import Card from "./Component/Card/Card";
 
 function App() {
   return (
     <>
-    <OwnerPage/>
+      <OwnerPage/>
+      {/* <Card/> */}
     </>
   );
 }
