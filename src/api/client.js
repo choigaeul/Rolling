@@ -14,6 +14,9 @@ const getBaseURL = () => {
 
 const BASE_URL = getBaseURL()
 
+// 디버깅 모드 활성화 여부 (환경 변수로 제어)
+const DEBUG_MODE = process.env.REACT_APP_DEBUG === 'true' || process.env.NODE_ENV === 'development'
+
 // 환경 변수 체크 및 경고 출력
 if (process.env.NODE_ENV === 'development') {
   // 팀 경로 패턴 확인 (숫자-숫자 형식)
@@ -51,29 +54,77 @@ const apiClient = axios.create({
   }
 })
 
-// API 요청 인터셉터
+// API 요청 인터셉터: 디버깅 모드에서 요청 정보 로깅
 apiClient.interceptors.request.use(
   (config) => {
+    if (DEBUG_MODE) {
+      console.group('📤 API 요청')
+      console.log('Method:', config.method?.toUpperCase())
+      console.log('URL:', config.url)
+      console.log('Full URL:', `${config.baseURL}${config.url}`)
+      if (config.params) {
+        console.log('Query Params:', config.params)
+      }
+      if (config.data) {
+        console.log('Request Data:', config.data)
+      }
+      if (config.headers) {
+        console.log('Headers:', config.headers)
+      }
+      console.groupEnd()
+    }
     return config
   },
   (error) => {
+    if (DEBUG_MODE) {
+      console.error('❌ 요청 설정 에러:', error)
+    }
     return Promise.reject(error)
   }
 )
 
-// API 응답 인터셉터: 공통 에러 처리
+// API 응답 인터셉터: 디버깅 모드에서 응답 정보 로깅 및 공통 에러 처리
 apiClient.interceptors.response.use(
   (response) => {
+    // 정상 응답 로깅 (디버깅 모드)
+    if (DEBUG_MODE) {
+      console.group('📥 API 응답 (성공)')
+      console.log('Status:', response.status)
+      console.log('URL:', response.config.url)
+      console.log('Response Data:', response.data)
+      console.groupEnd()
+    }
     return response
   },
   (error) => {
     // 네트워크 에러 또는 서버 에러 처리
-    if (error.response) {
-      console.error('API 에러:', error.response.status, error.response.data)
-    } else if (error.request) {
-      console.error('네트워크 에러: 서버에 연결할 수 없습니다.')
+    if (DEBUG_MODE) {
+      console.group('📥 API 응답 (에러)')
+      if (error.response) {
+        // 서버가 응답했지만 에러 상태 코드
+        console.error('Status:', error.response.status)
+        console.error('URL:', error.config?.url)
+        console.error('Response Data:', error.response.data)
+        console.error('Response Headers:', error.response.headers)
+      } else if (error.request) {
+        // 요청은 보냈지만 응답을 받지 못함
+        console.error('네트워크 에러: 서버에 연결할 수 없습니다.')
+        console.error('Request:', error.request)
+      } else {
+        // 요청 설정 중 에러 발생
+        console.error('요청 설정 에러:', error.message)
+      }
+      console.error('Full Error:', error)
+      console.groupEnd()
     } else {
-      console.error('요청 설정 에러:', error.message)
+      // 디버깅 모드가 아닐 때는 간단한 에러만 출력
+      if (error.response) {
+        console.error('API 에러:', error.response.status, error.response.data)
+      } else if (error.request) {
+        console.error('네트워크 에러: 서버에 연결할 수 없습니다.')
+      } else {
+        console.error('요청 설정 에러:', error.message)
+      }
     }
     return Promise.reject(error)
   }
