@@ -5,7 +5,7 @@ import Input from "../Component/Text_Field/Input"
 import ToggleButton from "../Component/Button/Toggle-button"
 import Option from "../Component/Option/Option"
 import PrimaryMain from "../Component/Button/Primary-main"
-import apiClient from "../api/client" // API 호출을 위해 axios 인스턴스 사용
+import { createRecipient } from "../api/recipients" // 수신인 생성 API 함수 사용
 
 const COLOR_OPTIONS = ["beige", "purple", "blue", "green"] // Rolling API에서 허용하는 배경색
 const IMAGE_PRESETS = [ // 이미지 모드에서 기본으로 제공할 배경 후보
@@ -73,15 +73,17 @@ function CreatePostPage() {
       setSubmitting(true)
       const imageUrlForRequest = mode === 'image' ? IMAGE_PRESETS[selectedIndex] : undefined
 
+      // API 스키마에 맞춰 페이로드 구성
+      // team 필드는 baseURL에 포함되어 있으므로 제거
       const payload = {
-        team: process.env.REACT_APP_ROLLING_TEAM,
         name: recipientName.trim(),
         backgroundColor: selectedColor, // 필수 필드라서 항상 포함
-        backgroundImageURL: imageUrlForRequest
+        backgroundImageURL: imageUrlForRequest // 이미지 모드일 때만 값이 있음
       }
 
-      const response = await apiClient.post(`/${process.env.REACT_APP_ROLLING_TEAM}/recipients/`, payload)
-      const newId = response.data?.id
+      // createRecipient API 함수 사용 (일관성 있는 API 호출)
+      const response = await createRecipient(payload)
+      const newId = response?.id
 
       if (newId) {
         navigate(`/post/${newId}`, { replace: true }) // 생성된 상세 페이지로 이동
@@ -91,7 +93,15 @@ function CreatePostPage() {
       }
     } catch (error) {
       console.error('롤링 페이퍼 생성 실패:', error?.response?.data || error)
-      alert(`롤링 페이퍼 생성에 실패했습니다. (${error?.response?.status || '네트워크 오류'})`)
+      
+      // API 응답의 상세 에러 메시지 표시
+      const errorMessage = error?.response?.data
+        ? Object.entries(error.response.data)
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join('\n')
+        : error?.message || '알 수 없는 오류'
+      
+      alert(`롤링 페이퍼 생성에 실패했습니다.\n\n${errorMessage}`)
     } finally {
       setSubmitting(false)
     }

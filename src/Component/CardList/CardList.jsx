@@ -76,26 +76,32 @@ function CardList({ recipient }) {
   const reactionBadgeClass = isImageCard
     ? 'bg-black/60 text-white'
     : 'bg-white/80 text-gray-900 border border-white/60 shadow-sm'
+
+  // 프로필 사진 표시 로직: 최대 3개까지 표시, 나머지는 +숫자로 표시
+  const visibleProfileCount = Math.min(messageCount, 3) // 최대 3개까지 표시
+  const remainingCount = Math.max(messageCount - 3, 0) // 나머지 수 (최소 0)
+  const profileImages = [profile01, profile02, profile03] // 프로필 이미지 배열
+
 //가을님 작업 복붙했어요
   return (
-    <div
-      data-cardlist
-      className="
-        relative overflow-hidden flex-shrink-0
+      <div
+        data-cardlist
+        className="
+          relative overflow-hidden flex-shrink-0
         w-[208px] h-[232px] rounded-[16px] box-border
         pt-6 pr-5 pb-5 pl-5
         min-[361px]:w-[275px] min-[361px]:h-[260px]
         min-[361px]:pt-[30px] min-[361px]:pr-6 min-[361px]:pb-5 min-[361px]:pl-6
-        border border-grayscale-500/20
-        shadow-[0_2px_13px_rgba(0,0,0,0.08)]
-        bg-cover bg-center
+          border border-grayscale-500/20
+          shadow-[0_2px_13px_rgba(0,0,0,0.08)]
+          bg-cover bg-center
         transition-colors duration-200
-      "
-      style={{
+        "
+        style={{
         ...backgroundStyle,
         color: isImageCard ? '#FFFFFF' : '#2B2B2B'
-      }}
-    >
+        }}
+      >
       {isImageCard && (
         <div className="absolute inset-0 bg-black/20" aria-hidden="true" />
       )}
@@ -112,70 +118,102 @@ function CardList({ recipient }) {
       >
         <div className={titleClass}>{name}</div>
 
-        <div className="flex items-center">
-          <img
-            className="w-7 h-7 rounded-full border border-white object-cover relative ml-0"
-            src={profile01}
-            alt="profile01"
-          />
-          <img
-            className="w-7 h-7 rounded-full border border-white object-cover relative ml-[-10px]"
-            src={profile02}
-            alt="profile02"
-          />
-          <img
-            className="w-7 h-7 rounded-full border border-white object-cover relative ml-[-10px]"
-            src={profile03}
-            alt="profile03"
-          />
-          <span className="inline-flex items-center justify-center ml-[-10px] relative z-[1]">
-            <span
-              className="
-                flex items-center justify-center
-                w-7 h-7
-                rounded-full bg-[#FFFFFF] text-12-regular
-              "
-              style={{ color: '#000000' }}
-            >
-              +27
-            </span>
-          </span>
-        </div>
+          <div className="flex items-center min-h-[28px]">
+            {/* 0명일 때: "00님이 기다리고 있어요!" 문구 표시 */}
+            {messageCount === 0 ? (
+              <span
+                className={`text-14-regular ${
+                  isImageCard
+                    ? 'text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]'
+                    : 'text-gray-600'
+                }`}
+              >
+                {name}님이 기다리고 있어요!
+              </span>
+            ) : (
+              <>
+                {/* 프로필 사진 최대 3개까지 표시 */}
+                {Array.from({ length: visibleProfileCount }).map((_, index) => (
+                  <img
+                    key={index}
+                    className={`w-7 h-7 rounded-full border border-white object-cover relative ${
+                      index === 0 ? 'ml-0' : 'ml-[-10px]'
+                    }`}
+                    src={profileImages[index]}
+                    alt={`profile${index + 1}`}
+                  />
+                ))}
+                {/* 나머지 수 표시 (4번째 동그라미) - 나머지가 있을 때만 표시 */}
+                {remainingCount > 0 && (
+                  <span className="inline-flex items-center justify-center ml-[-10px] relative z-[1]">
+                    <span
+                      className="
+                        flex items-center justify-center
+                        w-7 h-7
+                        rounded-full bg-[#FFFFFF] text-12-regular
+                      "
+                      style={{ color: '#000000' }}
+                    >
+                      +{remainingCount}
+                    </span>
+                  </span>
+                )}
+              </>
+            )}
+          </div>
 
         <div className={infoClass}>
           <span className={`text-16-bold ${isImageCard ? 'drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]' : 'text-gray-900'}`}>
             {messageCount} 
-          </span>
-          명이 작성했어요!
+            </span>
+            명이 작성했어요!
+          </div>
         </div>
-      </div>
 
-      {topReactions.length > 0 && (
+      {/* 고정 길이의 흰색 선 - 항상 표시 */}
         <div
           className="
-            flex items-end gap-2
+          absolute z-[1]
+          left-5 right-5
+          min-[361px]:left-6 min-[361px]:right-6
+          mt-[17px]
+          max-[360px]:mt-4
+            border-t border-grayscale-500/40
+          "
+        aria-hidden="true"
+      />
+      {/* 반응 아이콘들 - 있을 때만 표시, 선 위에 배치 */}
+      {topReactions.length > 0 && (
+          <div
+            className="
+            flex items-end gap-1
+            max-[360px]:gap-[4px]
+            min-[361px]:gap-2
             mt-[17px] pt-[18px]
             max-[360px]:mt-4 max-[360px]:pt-[14px]
-            border-t border-grayscale-500/40
             absolute z-[1]
+            left-5 right-5
+            min-[361px]:left-6 min-[361px]:right-6
           "
         >
           {topReactions.map((reaction) => (
             <div
               key={reaction.id}
               className={`
-                min-w-[66px] h-9 px-3 py-2 flex justify-center items-center
-                rounded-[32px] text-16-regular gap-1
+                flex justify-center items-center
+                rounded-[32px] gap-1
+                max-[360px]:min-w-[50px] max-[360px]:h-7 max-[360px]:px-2 max-[360px]:py-1 max-[360px]:text-12-regular
+                min-[361px]:min-w-[66px] min-[361px]:h-9 min-[361px]:px-3 min-[361px]:py-2 min-[361px]:text-16-regular
                 ${reactionBadgeClass}
               `}
             >
               <span>{reaction.emoji}</span>
               <span>{reaction.count}</span>
-            </div>
+          </div>
           ))}
-        </div>
+          </div>
       )}
-    </div>
+        </div>
   )
 }
 

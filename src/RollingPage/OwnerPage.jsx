@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"; // API 데이터 상태 관리를 위해 useEffect/useState/useMemo 추가
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../Component/Header/Header";
 import MessageHeader from "../Component/Header/MessageHeader";
 import DeleteButton from "../Component/Button/Delete-button";
@@ -24,8 +24,9 @@ const STATIC_MESSAGES = Array.from({ length: 3 }).map((_, index) => ({
   relationship: ["동료", "친구", "가족"][index % 3],
 }));
 
-const getRecipientIdFromPath = (explicitId) => { // 라우터가 없을 때 URL에서 /post/:id 추출
+const getRecipientIdFromPath = (explicitId, paramsId) => { // 라우터 파라미터 또는 props에서 ID 추출
   if (explicitId !== undefined && explicitId !== null) return explicitId
+  if (paramsId !== undefined && paramsId !== null) return paramsId
   if (typeof window === 'undefined') return null
   const match = window.location.pathname.match(/\/post\/(\d+)/)
   return match ? match[1] : null
@@ -33,6 +34,7 @@ const getRecipientIdFromPath = (explicitId) => { // 라우터가 없을 때 URL�
 
 function OwnerPage({ recipientId }) {
   const navigate = useNavigate();
+  const { id: paramsId } = useParams(); // React Router의 useParams로 URL 파라미터 가져오기
   // === 메시지/대상 데이터 ===
   const [recipient, setRecipient] = useState(null) // 대상 상세 정보 상태
   const [messages, setMessages] = useState([]) // 메시지 목록 상태
@@ -43,8 +45,8 @@ function OwnerPage({ recipientId }) {
   const [deleteError, setDeleteError] = useState(null)
 
   const currentRecipientId = useMemo(
-    () => getRecipientIdFromPath(recipientId), // 우선순위: props → URL 에서 ID 추출
-    [recipientId]
+    () => getRecipientIdFromPath(recipientId, paramsId), // 우선순위: props → useParams → URL 에서 ID 추출
+    [recipientId, paramsId]
   )
 
   useEffect(() => {
@@ -91,7 +93,13 @@ function OwnerPage({ recipientId }) {
         setReactions(normalizedReactions)
       } catch (err) {
         if (!active) return // 언마운트 시 상태 업데이트 중단
-        setError(err) // 에러 저장
+        console.error('데이터 불러오기 실패:', err)
+        const errorMessage = err?.response?.data
+          ? Object.entries(err.response.data)
+              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+              .join('\n')
+          : err?.message || '데이터를 불러올 수 없습니다.'
+        setError(new Error(errorMessage)) // 에러 저장
         setRecipient(null) // 대상 정보 초기화
         setMessages(STATIC_MESSAGES) // 샘플 데이터로 대체
         setReactions([])
@@ -117,7 +125,6 @@ function OwnerPage({ recipientId }) {
   // === 메시지 삭제 확인 모달 상태 추가 (개별 메시지 삭제) ===
   const [isMessageDeleteModalOpen, setIsMessageDeleteModalOpen] =
     useState(false);
-  const [messageToDeleteId, setMessageToDeleteId] = useState(null); // 삭제할 메시지 ID 추적
 
   // 카드 클릭 시 모달 열기 핸들러
   const handleCardClick = (message) => {
@@ -151,8 +158,13 @@ function OwnerPage({ recipientId }) {
         navigate('/list', { replace: true })
       } catch (err) {
         console.error('페이지 삭제 실패:', err)
-        setDeleteError(err)
-        alert('페이지 삭제에 실패했습니다. 잠시 후 다시 시도하세요.')
+        const errorMessage = err?.response?.data
+          ? Object.entries(err.response.data)
+              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+              .join('\n')
+          : err?.message || '페이지 삭제에 실패했습니다.'
+        setDeleteError(new Error(errorMessage))
+        alert(`페이지 삭제에 실패했습니다.\n\n${errorMessage}`)
       } finally {
         setDeleting(false)
         setIsPageDeleteModalOpen(false)
@@ -163,20 +175,17 @@ function OwnerPage({ recipientId }) {
   };
 
   // --- 개별 메시지 삭제 로직 ---
-  const handleOpenMessageDeleteModal = (id) => {
-    setMessageToDeleteId(id); // 삭제할 ID 저장
+  const handleOpenMessageDeleteModal = () => {
     setIsMessageDeleteModalOpen(true);
   };
 
   const handleCloseMessageDeleteModal = () => {
     setIsMessageDeleteModalOpen(false);
-    setMessageToDeleteId(null); // ID 초기화
   };
 
   const handleConfirmMessageDelete = () => {
     // 실제 삭제 로직 (예: 필터링)
-    console.log(`${messageToDeleteId}번 메시지를 삭제합니다.`);
-    // setMessages(prev => prev.filter(msg => msg.id !== messageToDeleteId));
+    // TODO: 메시지 삭제 API 호출 구현 필요
     handleCloseMessageDeleteModal();
   };
 
@@ -262,6 +271,12 @@ function OwnerPage({ recipientId }) {
       setReactions(normalizeReactionsResponse(updated))
     } catch (err) {
       console.error('반응 추가 실패:', err)
+      const errorMessage = err?.response?.data
+        ? Object.entries(err.response.data)
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join('\n')
+        : err?.message || '반응 추가에 실패했습니다.'
+      alert(`반응 추가에 실패했습니다.\n\n${errorMessage}`)
     }
   }
 
@@ -300,69 +315,75 @@ function OwnerPage({ recipientId }) {
                 <p className="text-center text-gray-600 mt-10">데이터를 불러오는 중입니다...</p>
               )}
               {error && !loading && (
-                <p className="text-center text-red-500 mt-10">데이터를 불러오지 못했습니다. 샘플 데이터를 표시합니다.</p>
+                <div className="text-center text-red-500 mt-10">
+                  <p>데이터를 불러오지 못했습니다. 샘플 데이터를 표시합니다.</p>
+                  {error.message && <p className="text-xs mt-1">{error.message}</p>}
+                </div>
               )}
               {deleteError && (
-                <p className="text-center text-red-500 mt-6">페이지 삭제에 실패했습니다.</p>
+                <div className="text-center text-red-500 mt-6">
+                  <p>페이지 삭제에 실패했습니다.</p>
+                  {deleteError.message && <p className="text-xs mt-1">{deleteError.message}</p>}
+                </div>
               )}
 
               {/* 카드 목록 */}
               {hasMessages ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] mt-[28px] relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] mt-[28px] relative z-10">
                   {messages.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => handleCardClick(item)}
-                      className="bg-white rounded-xl shadow-md p-6 text-gray-600 flex flex-col justify-between cursor-pointer hover:shadow-lg transition h-[280px]"
-                    >
-                      {/* 🗑️ 상단: 프로필, 이름, 태그, 휴지통 */}
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center">
-                          {/* 프로필 이미지 */}
-                          <img
-                            src={item.profileImageURL}
-                            alt={item.senderName}
-                            className="w-10 h-10 rounded-full mr-3 object-cover"
+                  <div
+                    key={item.id}
+                    onClick={() => handleCardClick(item)}
+                    className="bg-white rounded-xl shadow-md p-6 text-gray-600 flex flex-col justify-between cursor-pointer hover:shadow-lg transition h-[280px]"
+                  >
+                    {/* 🗑️ 상단: 프로필, 이름, 태그, 휴지통 */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center">
+                        {/* 프로필 이미지 */}
+                        <img
+                          src={item.profileImageURL}
+                          alt={item.senderName}
+                          className="w-10 h-10 rounded-full mr-3 object-cover"
                             onError={(e) => {
                               e.currentTarget.src = 'https://placehold.co/40x40?text=?'
                             }}
-                          />
-                          {/* From. 이름 및 태그 */}
-                          <div>
-                            <div className="font-bold text-gray-900 text-lg">
-                              From. {item.senderName}
-                            </div>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                              {item.relationship}
-                            </span>
+                        />
+                        {/* From. 이름 및 태그 */}
+                        <div>
+                          <div className="font-bold text-gray-900 text-lg">
+                            From. {item.senderName}
                           </div>
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {item.relationship}
+                          </span>
                         </div>
+                      </div>
 
-                        {/* 개별 메시지 삭제 휴지통 아이콘 */}
-                        <button
-                          onClick={(e) => {
+                      {/* 개별 메시지 삭제 휴지통 아이콘 */}
+                      <button
+                        onClick={(e) => {
                             e.stopPropagation();
-                            handleOpenMessageDeleteModal(item.id);
-                          }}
-                          className="p-2 text-gray-400 hover:text-gray-600 transition"
-                          aria-label="메시지 삭제"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-
-                      {/* 메시지 내용 */}
-                      <p className="text-gray-800 line-clamp-4 flex-1">
-                        {item.content || '내용이 없습니다.'}
-                      </p>
-
-                      {/* 하단: 날짜 */}
-                      <div className="mt-4 text-xs text-gray-500">
-                        {item.date || '날짜 정보 없음'}
-                      </div>
+                            handleOpenMessageDeleteModal();
+                        }}
+                        className="p-2 text-gray-400 hover:text-gray-600 transition"
+                        aria-label="메시지 삭제"
+                      >
+                        🗑️
+                      </button>
                     </div>
-                  ))}
-                </div>
+
+                    {/* 메시지 내용 */}
+                    <p className="text-gray-800 line-clamp-4 flex-1">
+                        {item.content || '내용이 없습니다.'}
+                    </p>
+
+                    {/* 하단: 날짜 */}
+                    <div className="mt-4 text-xs text-gray-500">
+                        {item.date || '날짜 정보 없음'}
+                    </div>
+                  </div>
+                ))}
+              </div>
               ) : (
                 !loading && (
                   <div className="mt-20 text-center text-gray-500">

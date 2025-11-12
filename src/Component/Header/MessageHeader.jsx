@@ -95,6 +95,35 @@ function MessageHeader({
     if (showEmojiMenu) setShowEmojiMenu(false);
   };
 
+  // URL 복사 기능
+  const handleCopyURL = async () => {
+    try {
+      const currentURL = window.location.href;
+      await navigator.clipboard.writeText(currentURL);
+      alert('URL이 클립보드에 복사되었습니다!');
+      setShowShareMenu(false); // 복사 후 메뉴 닫기
+    } catch (err) {
+      // 클립보드 API가 지원되지 않는 경우 대체 방법 사용
+      const textArea = document.createElement('textarea');
+      textArea.value = window.location.href;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert('URL이 클립보드에 복사되었습니다!');
+        setShowShareMenu(false);
+      } catch (fallbackErr) {
+        console.error('URL 복사 실패:', fallbackErr);
+        alert('URL 복사에 실패했습니다. 브라우저를 확인해주세요.');
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    }
+  };
+
   const shareButtonClasses = `
         flex items-center justify-center 
         border border-gray-300 w-[56px] h-[36px] rounded-[6px] bg-white transition
@@ -242,7 +271,10 @@ function MessageHeader({
                     <button className="text-left px-4 py-2 hover:bg-gray-100 w-full h-[50px]">
                       카카오톡 공유
                     </button>
-                    <button className="text-left px-4 py-2 hover:bg-gray-100 w-full h-[50px]">
+                    <button 
+                      onClick={handleCopyURL}
+                      className="text-left px-4 py-2 hover:bg-gray-100 w-full h-[50px]"
+                    >
                       URL 복사
                     </button>
                   </div>
