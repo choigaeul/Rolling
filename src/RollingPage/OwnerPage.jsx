@@ -140,7 +140,7 @@ function OwnerPage() {
                   </button>
                 </div>
               )}
-              {/* ✅ 카드 리스트 */}
+              {/* 카드 리스트 */}
               <div
                 className="
                   grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
@@ -166,7 +166,7 @@ function OwnerPage() {
             </div>
           </div>
 
-          {/* ✅ 모바일/태블릿 하단 삭제 버튼 */}
+          {/* 모바일/태블릿 하단 삭제 버튼 */}
           {screenMode !== "pc" && (
             <div className="fixed bottom-0 left-0 right-0 z-40 pb-[calc(env(safe-area-inset-bottom)+16px)]">
               <div className="mx-auto max-w-[1200px] px-[24px]">
