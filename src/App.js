@@ -5,13 +5,12 @@ import CreatePostPageTest from "./CreatePostPage/CreatePostPageTest";
 import OwnerPage from "./RollingPage/OwnerPage";
 import RecipientPage from "./RollingPage/RecipientPage";
 import MessagePageTest from "./MessagePage/MessagePageTest";
-import RecipientPageTest from "./RollingPage/RecipientPageTest";
 import MessageHeader from "./Component/Header/MessageHeader";
 
 function App() {
   return (
     <>
-      <RecipientPageTest />
+      <RecipientPage />
     </>
   );
 }

@@ -18,18 +18,11 @@ export const MODAL_DATA_API_URL = "https://placeholder.example.com/api/modal";
  * @param {function} onButtonClick - 버튼 클릭 핸들러
  */
 
-function Modal({
-  isOpen = false,
-  onClose,
-  profileImage,
-  senderName = "김동훈",
-  relationship = "coworker",
-  date = "2023.07.08",
-  content = "",
-  onButtonClick,
-  apiUrl = MODAL_DATA_API_URL,
-  message,
-}) {
+/*******************************변경사항*************************/
+// profileImage,senderName,relationship, date, content, apiUrl 삭제
+// message객체로  페이지에서 데이터를 받아 처리
+
+function Modal({ isOpen = false, onClose, onButtonClick, message }) {
   if (!isOpen) return null;
 
   const handleBackdropClick = (e) => {
@@ -55,8 +48,12 @@ function Modal({
           <div className="absolute left-[39px] top-[40px] flex flex-row items-center gap-4">
             {/* 프로필 이미지 */}
             <div className="w-14 h-14 bg-white border border-gray-200 rounded-full overflow-hidden flex-shrink-0">
-              {profileImage ? (
-                <img src={profileImage} alt={senderName} className="w-full h-full object-cover" />
+              {message ? (
+                <img
+                  src={message.profileImageURL}
+                  alt={message.profileImageURL}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <div className="w-full h-full bg-gray-100" />
               )}
@@ -66,16 +63,16 @@ function Modal({
             <div className="flex flex-col items-start gap-1.5">
               <div className="flex flex-row items-start gap-1.5 h-6">
                 <span className="text-[20px] leading-6 font-normal text-black">From.</span>
-                <span className="text-[20px] leading-6 font-bold text-black">{senderName}</span>
+                <span className="text-[20px] leading-6 font-bold text-black">{message.sender}</span>
               </div>
-              <Badge type={relationship} />
+              <Badge text={message.relationship} />
             </div>
           </div>
 
           {/* 날짜 */}
           <div className="absolute right-[39px] top-[56px]">
             <span className="text-[14px] leading-5 font-normal tracking-[-0.005em] text-gray-400">
-              {date}
+              {message.createdAt}
             </span>
           </div>
         </div>
@@ -98,7 +95,7 @@ function Modal({
             `}</style>
 
             <p className="text-[18px] leading-[28px] font-normal tracking-[-0.01em] text-[#5A5A5A] w-[500px] pt-4">
-              {content ||
+              {message.content ||
                 "코로나가 또다시 기승을 부리는 요즘이네요. 건강, 체력 모두 조심 또 하세요!"}
             </p>
           </div>
