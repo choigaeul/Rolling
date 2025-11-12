@@ -189,32 +189,55 @@ function ListPage() {
   useEffect(() => {
     let active = true
 
-    const loadRecipients = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        // 수신인 목록을 불러와 리스트 카드에 필요한 기본 데이터 확보
-        const data = await fetchRecipients({ limit: 12 })
-        if (!active) return
-        const results = Array.isArray(data?.results) ? data.results : []
+     const loadRecipients = async () => {
+       try {
+         setLoading(true)
+         setError(null)
+         // pagination을 모두 따라가며 수신인 전체 목록을 불러온다
+         const limit = 50
+         let offset = 0
+         let aggregated = []
+         let hasNext = true
 
-        // 각 수신인에 대한 반응 카운트를 따로 요청하여 카드에 전달
-        const enriched = await Promise.all(
-          results.map(async (item) => {
-            if (!item?.id) return { ...item, reactions: [] }
-            try {
-              const reactionData = await fetchRecipientReactions(item.id)
-              const normalized = normalizeReactionsResponse(reactionData)
-              return { ...item, reactions: normalized }
-            } catch (err) {
-              console.error('반응 데이터를 불러오지 못했습니다:', err)
-              return { ...item, reactions: [] }
-            }
-          })
-        )
+         while (hasNext) {
+           const data = await fetchRecipients({ limit, offset })
+           if (!active) return
+           const results = Array.isArray(data?.results) ? data.results : []
+           aggregated = aggregated.concat(results)
+           if (data?.next) {
+             offset += limit
+           } else {
+             hasNext = false
+           }
+         }
 
-        setPopularCards(enriched)
-        setRecentCards([...enriched].reverse())
+         // 각 수신인에 대한 반응 카운트를 따로 요청하여 카드에 전달하고 총합 계산
+         const enriched = await Promise.all(
+           aggregated.map(async (item) => {
+             if (!item?.id) return { ...item, reactions: [], totalReactions: 0 }
+             try {
+               const reactionData = await fetchRecipientReactions(item.id)
+               const normalized = normalizeReactionsResponse(reactionData)
+               const totalReactions = normalized.reduce((acc, reaction) => acc + (reaction.count || 0), 0)
+               return { ...item, reactions: normalized, totalReactions }
+             } catch (err) {
+               console.error('반응 데이터를 불러오지 못했습니다:', err)
+               return { ...item, reactions: [], totalReactions: 0 }
+             }
+           })
+         )
+
+         // 인기 순 정렬: 반응 수가 많은 순서대로
+         const sortedByReaction = [...enriched].sort((a, b) => (b.totalReactions ?? 0) - (a.totalReactions ?? 0))
+         // 최근 순 정렬: 생성일이 최신인 순서대로
+         const sortedByRecent = [...enriched].sort((a, b) => {
+           const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0
+           const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0
+           return dateB - dateA
+         })
+
+         setPopularCards(sortedByReaction)
+         setRecentCards(sortedByRecent)
       } catch (err) {
         if (!active) return
         setError(err)
