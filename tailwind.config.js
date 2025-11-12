@@ -89,6 +89,11 @@ module.exports = {
       animation: {
         scrollX: "scrollX 15s linear infinite",
       },
+      screens: {
+        "max-ta": { max: "1024px" },
+        "max-xt": { max: "768px" },
+        "max-xs": { max: "360px" },
+      },
     },
   },
   plugins: [scrollbarHide],
