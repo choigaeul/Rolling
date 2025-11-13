@@ -1,5 +1,6 @@
-import React from "react";
-import RollingIcon from "../../img/logo.svg";
+import React from "react"
+import { Link } from "react-router-dom"
+import RollingIcon from "../../img/logo.svg"
 
 function Header(hideCreateButton = false) {
   return (
@@ -12,25 +13,27 @@ function Header(hideCreateButton = false) {
           */}
           <div className="w-full h-full flex items-center justify-between px-[24px]">
             {/* Rolling 로고 영역 */}
-            <div className="flex items-center justify-center z-60 h-[30px]">
-              <a href="/">
+            <div className="flex items-center justify-center justify-items-center z-60 h-[30px]">
+              {/* 로고 아이콘 */}
+              <Link to="/">
                 <img src={RollingIcon} alt="Rolling 로고" />
-              </a>
+              </Link>
             </div>
 
             {/* "롤링 페이퍼 만들기" 버튼 */}
             <div>
-              {!hideCreateButton && (
-              <button className="border border-grayscale-300 bg-white rounded-lg text-16-bold h-[42px] w-[149px] hover:bg-gray-100">
-                <a href="/">롤링 페이퍼 만들기</a>
-              </button>
-              )}
+              <Link
+                to="/post"
+                className="border border-grayscale-300 bg-white rounded-lg text-16-bold h-[42px] w-[149px] hover:bg-gray-100 flex items-center justify-center"
+              >
+                롤링 페이퍼 만들기
+              </Link>
             </div>
           </div>
         </header>
       </div>
     </>
-  );
+  )
 }
 
-export default Header;
+export default Header

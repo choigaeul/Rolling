@@ -1,25 +1,46 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import sharingIcon from "../../img/share-24.svg";
 import { ReactComponent as PlusIcon } from "../../img/add-24.svg";
 import { ReactComponent as ArrowIcon } from "../../img/arrow_down.svg";
 import EmojiPicker from "emoji-picker-react";
-import Toast from "../Toast/Toast.jsx";
+import { Link } from "react-router-dom";
+import Toast from "../Toast/Toast.jsx"; // Toast 컴포넌트 임포트
 
-function MessageHeader({ hideAvatars = false }) {
+// API가 허용하는 이모지 제한 로직 제거 (요청에 따라 모든 이모지 허용)
+// const { EMOJI_TO_ALIAS } from "../../api/recipients"; // 주석 처리 또는 제거
+
+function MessageHeader({
+  recipient,
+  messageCount = 0,
+  topAvatars = [],
+  reactions: initialReactionsProp,
+  onShare,
+  onAddReaction, // 부모 컴포넌트(OwnerPage)의 API 호출 함수
+  hideAvatars = false, // RollingPage 버전에서 가져온 아바타 숨김 옵션
+}) {
   // ==========================
-  // 상태
+  // 상태 및 Props 처리
   // ==========================
-  const [reactions, setReactions] = useState([]);
+  const memoInitialReactions = useMemo(
+    () => (Array.isArray(initialReactionsProp) ? initialReactionsProp : []),
+    [initialReactionsProp]
+  );
+  
+  // reactions 상태는 API prop에서 초기화되지만, 5회 제한 로직 처리를 위해 필요
+  const [reactions, setReactions] = useState(memoInitialReactions); 
+
   const [showEmojiMenu, setShowEmojiMenu] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [animatedId, setAnimatedId] = useState(null);
-  const [popup, setPopup] = useState({ visible: false, message: "" });
+  
+  // UX/UI 피드백 상태 (팝업 + 토스트)
+  const [popup, setPopup] = useState({ visible: false, message: "" }); // 5회 제한 팝업
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
-  const AUTO_RESET_ON_LOAD = false;
 
+  // 사용자 ID (Local Storage에서 로드/생성) - 5회 제한 로직에 사용
   const [userId] = useState(() => {
     const saved = localStorage.getItem("userId");
     if (saved) return saved;
@@ -28,37 +49,20 @@ function MessageHeader({ hideAvatars = false }) {
     return newId;
   });
 
-  // ==========================
-  // 로컬스토리지 로드/저장
-  // ==========================
-  const resetReactions = useCallback(() => {
-    localStorage.removeItem("reactions");
-    setReactions([]);
-    console.log("reactions가 초기화되었습니다!");
-  }, []);
-
+  // reactions prop 변경 시 로컬 상태 업데이트
   useEffect(() => {
-    if (AUTO_RESET_ON_LOAD) {
-      resetReactions();
-    } else {
-      const saved = localStorage.getItem("reactions");
-      if (saved) {
-        try {
-          setReactions(JSON.parse(saved));
-        } catch {
-          setReactions([]);
-        }
-      }
+    setReactions(memoInitialReactions);
+    
+    // API로부터 받은 반응 데이터에 사용자 클릭 횟수 로컬 데이터 병합
+    // (선택 사항: 로컬 5회 제한 카운트를 API 데이터와 별개로 관리할 경우)
+    const savedUserClicks = localStorage.getItem(`userClicks_${userId}`);
+    if (!savedUserClicks) {
+        localStorage.setItem(`userClicks_${userId}`, "{}");
     }
-    window.resetReactions = resetReactions;
-  }, [AUTO_RESET_ON_LOAD, resetReactions]);
-
-  useEffect(() => {
-    localStorage.setItem("reactions", JSON.stringify(reactions));
-  }, [reactions]);
+  }, [memoInitialReactions, userId]);
 
   // ==========================
-  // 팝업 / 토스트
+  // 로컬 팝업 / 토스트
   // ==========================
   const showPopup = (msg) => {
     setPopup({ visible: true, message: msg });
@@ -72,53 +76,72 @@ function MessageHeader({ hideAvatars = false }) {
   };
 
   // ==========================
-  // 이모지 처리
+  // 이모지 처리 (5회 제한 로직 포함)
   // ==========================
   const sortedReactions = Array.isArray(reactions)
     ? [...reactions].sort((a, b) => b.count - a.count)
     : [];
+    
+  // Local Storage에 저장된 사용자별 클릭 횟수를 가져옵니다.
+  const getUserClicks = useCallback(() => {
+      try {
+          return JSON.parse(localStorage.getItem(`userClicks_${userId}`) || "{}");
+      } catch {
+          return {};
+      }
+  }, [userId]);
+
+  const setUserClicks = useCallback((newClicks) => {
+      localStorage.setItem(`userClicks_${userId}`, JSON.stringify(newClicks));
+  }, [userId]);
 
   const handleEmojiSelect = (emojiData) => {
     const selectedEmoji =
-      typeof emojiData === "string"
-        ? emojiData
-        : emojiData?.emoji || emojiData?.native;
+      typeof emojiData === "string" ? emojiData : emojiData?.emoji || emojiData?.native;
 
     if (!selectedEmoji) return;
 
+    let userClicks = getUserClicks();
+    const userClickedCount = userClicks[selectedEmoji] !== undefined ? userClicks[selectedEmoji] : 0;
+
+    // 5회 제한 로직 (RollingPage 버전에서 가져옴)
+    if (userClickedCount >= 5) {
+      showPopup("이 이모지는 최대 5번까지만 누를 수 있어요 😅");
+      setShowEmojiPicker(false);
+      return;
+    }
+    
+    // 5회 제한에 걸리지 않으면:
+    
+    // 1. Local Storage 업데이트 (5회 제한 카운터)
+    userClicks = { ...userClicks, [selectedEmoji]: userClickedCount + 1 };
+    setUserClicks(userClicks);
+
+    // 2. 부모 컴포넌트에게 API 호출 위임
+    if (typeof onAddReaction === 'function') {
+      onAddReaction(selectedEmoji);
+    }
+    
+    // 3. 로컬 상태 임시 업데이트 및 애니메이션 (UX 개선)
     setReactions((prev) => {
-      const existing = prev.find((r) => r.emoji === selectedEmoji);
-      if (existing) {
-        const userClickedCount =
-          existing.users[userId] !== undefined ? existing.users[userId] : 0;
-
-        if (userClickedCount >= 5) {
-          showPopup("이 이모지는 최대 5번까지만 누를 수 있어요 😅");
-          return prev;
+        const existing = prev.find((r) => r.emoji === selectedEmoji);
+        if (existing) {
+             // prop으로 받은 reactions를 업데이트하는 대신, 임시로 로컬 count를 증가시켜 애니메이션 트리거
+            return prev.map((r) =>
+              r.emoji === selectedEmoji
+                ? { ...r, count: r.count + 1 }
+                : r
+            );
+        } else {
+            // 새 이모지인 경우 임시로 추가
+             return [
+                 ...prev,
+                 { emoji: selectedEmoji, count: 1, id: Date.now() },
+             ];
         }
-
-        return prev.map((r) =>
-          r.emoji === selectedEmoji
-            ? {
-                ...r,
-                count: r.count + 1,
-                users: { ...r.users, [userId]: userClickedCount + 1 },
-              }
-            : r
-        );
-      } else {
-        return [
-          ...prev,
-          {
-            emoji: selectedEmoji,
-            count: 1,
-            users: { [userId]: 1 },
-            id: Date.now(),
-          },
-        ];
-      }
     });
 
+    // 애니메이션 트리거
     const target = reactions.find((r) => r.emoji === selectedEmoji);
     setAnimatedId(target ? target.id : Date.now());
     setTimeout(() => setAnimatedId(null), 250);
@@ -137,6 +160,9 @@ function MessageHeader({ hideAvatars = false }) {
     setShowShareMenu((p) => !p);
     setShowEmojiMenu(false);
     setShowEmojiPicker(false);
+    if (typeof onShare === 'function' && !showShareMenu) {
+        onShare(); // 공유 메뉴 열 때 부모 콜백 실행
+    }
   };
   const toggleEmojiPicker = () => {
     setShowEmojiPicker((p) => !p);
@@ -145,32 +171,55 @@ function MessageHeader({ hideAvatars = false }) {
   };
 
   // ==========================
-  // 공유
+  // 공유 기능 (Toast 사용)
   // ==========================
   const handleKakaoShare = () => {
-    showToast("카카오톡 URL이 복사되었습니다!", "success");
+     // 실제 카카오톡 공유 API 호출 로직은 생략하고 Toast만 표시
+    showToast("카카오톡 공유 URL이 복사되었습니다!", "success"); 
     setShowShareMenu(false);
   };
+  
+  // URL 복사 기능 (HEAD 버전의 복사 로직 + Toast)
   const handleCopyURL = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      showToast("URL이 복사되었습니다!", "success");
-    } catch {
-      showToast("복사에 실패했어요 😢", "error");
+      const currentURL = window.location.href;
+      await navigator.clipboard.writeText(currentURL);
+      showToast('URL이 클립보드에 복사되었습니다!', 'success');
+      setShowShareMenu(false); 
+    } catch (err) {
+      // 클립보드 API가 지원되지 않는 경우 대체 방법 사용 (HEAD 버전의 대체 로직)
+      const textArea = document.createElement('textarea');
+      textArea.value = window.location.href;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('URL이 클립보드에 복사되었습니다!', 'success');
+      } catch (fallbackErr) {
+        console.error('URL 복사 실패:', fallbackErr);
+        showToast('URL 복사에 실패했습니다.', 'error');
+      } finally {
+        document.body.removeChild(textArea);
+        setShowShareMenu(false);
+      }
     }
-    setShowShareMenu(false);
   };
 
+
   // ==========================
-  // 스타일
+  // 렌더링 준비
   // ==========================
   const shareButtonClasses = `
     flex items-center justify-center 
-    border border-gray-300 w-[56px] h-[36px] rounded-md 
-    ${showShareMenu ? "border-gray-500" : "bg-white hover:bg-gray-100"} 
+    border border-gray-300 w-[56px] h-[36px] rounded-[6px] transition
+    ${showShareMenu ? "border-gray-500 bg-gray-50" : "bg-white hover:bg-gray-100"}
   `;
+
   const plusButtonClasses = `
-    flex items-center justify-center gap-1 border border-gray-300 text-gray-900 rounded-md 
+    flex items-center justify-center gap-1 border border-gray-300 text-gray-900 rounded-[6px]
     w-[88px] h-[36px] transition
     ${
       showEmojiPicker
@@ -179,11 +228,27 @@ function MessageHeader({ hideAvatars = false }) {
     }
   `;
 
+  const displayName = recipient?.name ? `To. ${recipient.name}` : 'To. 이름 없는 대상';
+  const totalWriters = messageCount ?? 0;
+  
+  // 아바타 렌더링을 위한 데이터 준비
+  const visibleAvatars = useMemo(() => topAvatars.slice(0, 3), [topAvatars]);
+  const hiddenCount = Math.max(totalWriters - visibleAvatars.length, 0);
+
   // ==========================
   // 렌더링
   // ==========================
   return (
     <div className="border-b border-gray-200 relative mx-auto w-full">
+      
+      {/* 팝업 (5회 제한 알림) */}
+      {popup.visible && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 text-white text-sm px-5 py-3 rounded-lg shadow-lg z-50 animate-fadeIn">
+          {popup.message}
+        </div>
+      )}
+
+      {/* 토스트 (URL 복사 알림) */}
       <Toast
         isOpen={toastOpen}
         onClose={() => setToastOpen(false)}
@@ -192,149 +257,157 @@ function MessageHeader({ hideAvatars = false }) {
         duration={2000}
       />
 
-      {popup.visible && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 text-white text-sm px-5 py-3 rounded-lg shadow-lg z-50 animate-fadeIn">
-          {popup.message}
-        </div>
-      )}
+      <div className="flex items-center justify-center w-full bg-white">
+        <div className="flex items-center justify-between w-full max-w-[1200px] px-6 h-[68px]">
+          
+          {/* 왼쪽: 수신자 이름 (Link 포함) */}
+          <Link
+            to="/list" // HEAD 버전의 /list Link 적용
+            className="text-gray-800 text-28-bold truncate pr-6 hover:underline"
+            title={displayName}
+          >
+            {displayName}
+          </Link>
 
-      {/* 반응형 + 토글 */}
-      <div
-        className="
-          flex justify-between items-center flex-wrap w-full py-3 mx-auto bg-white transition-all duration-300 overflow-visible max-w-[1200px] px-[24px]">
-        {/* 왼쪽 텍스트 */}
-        <div className="text-gray-800 text-28-bold flex-shrink-0 min-w-[160px]">
-          To. Ashley Kim
-        </div>
-
-        {/* 오른쪽 영역 */}
-        <div
-          className="flex flex-wrap justify-end items-center gap-2 md:gap-3  min-w-[200px] flex-shrink overflow-visible">
-          {/* 작성자 아바타 */}
-          {!hideAvatars && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="flex items-center -space-x-[10px] md:-space-x-[12px]">
-                {[...Array(3)].map((_, i) => (
-                  <img
-                    key={i}
-                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3sNaglv_WIugAApob8DnWx3ePYnc33k_vCwJ-0b6NcJF2JdWPR4Ta2-Jr5BbZxrt0-5BBbZJfhMraFULt8VemDX9DiSnTi4LC665QBIhHCg&s=10"
-                    alt="avatar"
-                    className="w-[26px] h-[26px] md:w-[28px] md:h-[28px] rounded-full border-2 border-white"
-                  />
-                ))}
-                <div className="w-[26px] h-[26px] md:w-[28px] md:h-[28px] bg-gray-300 rounded-full flex items-center justify-center text-xs text-gray-700 border-2 border-white">
-                  +6
+          {/* 오른쪽 영역 */}
+          <div className="flex items-center gap-[28px] relative">
+            
+            {/* 작성자 수, 아바타 등 */}
+            {!hideAvatars && ( // hideAvatars 옵션 적용
+              <div className="flex items-center gap-[11px] flex-shrink-0">
+                <div className="flex items-center">
+                  <div className="flex items-center -space-x-[12px]">
+                    {/* prop 기반 아바타 렌더링 */}
+                    {visibleAvatars.map((avatar, i) => (
+                      <img
+                        key={`${avatar.src}-${i}`}
+                        src={avatar.src}
+                        alt={avatar.alt || `avatar-${i + 1}`}
+                        className="w-[28px] h-[28px] rounded-full border-[1.5px] border-white object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://placehold.co/28x28';
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {hiddenCount > 0 && (
+                    <div className="ml-2 w-[28px] h-[28px] bg-white border border-[#E3E3E3] rounded-full flex items-center justify-center text-xs text-[#484848]">
+                      +{hiddenCount}
+                    </div>
+                  )}
                 </div>
+                <span className="text-18-regular text-gray-900 whitespace-nowrap">
+                  <span className="text-18-bold">{totalWriters}</span>명이 작성했어요!
+                </span>
               </div>
-              <span className="ml-2 text-[14px] md:text-[18px] whitespace-nowrap">
-                <span className="font-semibold">23명</span>이 작성했어요!
-              </span>
-              <span className="hidden md:block w-[1px] h-[28px] bg-gray-200 mx-4"></span>
-            </div>
-          )}
+            )}
+            
+            {/* 이모지 표시 + 화살표 */}
+            <div className="flex items-center gap-2 min-w-[236px] justify-end">
+              {sortedReactions.length > 0 && (
+                <div className="relative flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    {/* 상위 3개 이모지 표시 */}
+                    {sortedReactions.slice(0, 3).map((reaction) => (
+                      <button
+                        key={reaction.id || reaction.emoji}
+                        onClick={() => handleEmojiSelect(reaction.emoji)}
+                        className={`flex items-center justify-center gap-1 bg-black bg-opacity-[54%] text-white rounded-full px-[12px] py-[6px] transition-transform duration-150 ${
+                          animatedId === (reaction.id || reaction.emoji) ? "emoji-animate" : ""
+                        }`}
+                      >
+                        {reaction.emoji}&nbsp;{reaction.count}
+                      </button>
+                    ))}
+                  </div>
 
-          {/* 이모지 반응 */}
-          {sortedReactions.length > 0 && (
-            <div className="relative flex flex-wrap gap-1 justify-end items-center overflow-visible">
-              <div className="flex items-center gap-1">
-                {sortedReactions.slice(0, 3).map((reaction) => (
-                  <button
-                    key={reaction.id}
-                    onClick={() => handleEmojiSelect(reaction.emoji)}
-                    className={`flex items-center justify-center gap-1 bg-black bg-opacity-[54%] text-white rounded-full px-[12px] py-[6px] transition-transform duration-150 ${
-                      animatedId === reaction.id ? "emoji-animate" : ""
-                    }`}
-                  >
-                    {reaction.emoji}&nbsp;{reaction.count}
-                  </button>
-                ))}
-
-                {/* 이모지 토글 버튼 */}
-                {sortedReactions.length > 3 && (
-                  <button
-                    onClick={toggleEmojiMenu}
-                    className="mx-2 transition-transform duration-200"
-                  >
-                    <ArrowIcon
-                      className={`transition-transform duration-200 ${
-                        showEmojiMenu ? "rotate-180" : "rotate-0"
-                      }`}
-                    />
-                  </button>
-                )}
-              </div>
-
-              {/* 토글 메뉴 */}
-              {showEmojiMenu && sortedReactions.length > 3 && (
-                <div className="absolute right-5 mt-[190px] w-80 bg-white rounded-xl shadow-lg p-[24px] grid grid-cols-4 gap-2 justify-items-center z-50 border border-gray-300">
-                  {sortedReactions.slice(0, 7).map((reaction) => (
+                  {/* 이모지 토글 버튼 */}
+                  {sortedReactions.length > 3 && (
                     <button
-                      key={reaction.id}
-                      onClick={() => handleEmojiSelect(reaction.emoji)}
-                      className={`flex flex-row items-center justify-center bg-black bg-opacity-[54%] text-white rounded-full px-[12px] py-[6px] text-16-regular w-full transition-transform duration-150 ${
-                        animatedId === reaction.id ? "emoji-animate" : ""
-                      }`}
+                      onClick={toggleEmojiMenu}
+                      className="flex items-center justify-center w-[36px] h-[36px] transition"
                     >
-                      {reaction.emoji}&nbsp;{reaction.count}
+                      <ArrowIcon
+                        className={`transition-transform duration-200 ${
+                          showEmojiMenu ? "rotate-180" : "rotate-0"
+                        }`}
+                      />
                     </button>
-                  ))}
-                  {sortedReactions.length > 7 && (
-                    <div className="flex items-center justify-center bg-black bg-opacity-[54%] rounded-full px-[12px] py-[6px] text-white w-full">
-                      +{sortedReactions.length - 7}
+                  )}
+
+                  {/* 전체 이모지 목록 팝업 */}
+                  {showEmojiMenu && sortedReactions.length > 3 && (
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg p-[24px] grid grid-cols-4 gap-2 justify-items-center z-10 border border-gray-300">
+                      {reactions.map((reaction) => (
+                        <button
+                          key={reaction.id || reaction.emoji}
+                          onClick={() => handleEmojiSelect(reaction.emoji)}
+                          className={`flex flex-row items-center justify-center bg-black bg-opacity-[54%] text-white rounded-full px-[12px] py-[6px] text-16-regular w-full transition-transform duration-150 ${
+                            animatedId === (reaction.id || reaction.emoji) ? "emoji-animate" : ""
+                          }`}
+                        >
+                          {reaction.emoji}&nbsp;{reaction.count}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
               )}
             </div>
-          )}
 
-          {/* 이모지 추가 */}
-          <div className="relative z-20">
-            <button onClick={toggleEmojiPicker} className={plusButtonClasses}>
-              <PlusIcon />
-              추가
-            </button>
-            {showEmojiPicker && (
-              <div className="absolute top-[calc(100%+8px)] left-1/2 transform -translate-x-1/2 z-50">
-                <EmojiPicker onEmojiClick={handleEmojiSelect} />
-              </div>
-            )}
-          </div>
+            <span className="w-px h-[28px] bg-[#EEEEEE]"></span>
 
-          {/* 구분선 */}
-          <span className="hidden md:block w-[1px] h-[28px] bg-gray-200 mx-2"></span>
-
-          {/* 공유 버튼 */}
-          <div className="relative">
-            <button
-              onClick={toggleShareMenu}
-              className={shareButtonClasses}
-              aria-expanded={showShareMenu}
-            >
-              <img src={sharingIcon} alt="공유" />
-            </button>
-
-            {showShareMenu && (
-              <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-md py-[10px] w-[140px] z-50 text-gray-900 border border-gray-300 text-16-regular">
-                <button
-                  onClick={handleKakaoShare}
-                  className="text-left px-4 py-2 hover:bg-gray-100 w-full"
-                >
-                  카카오톡 공유
+            {/* 이모지 추가 & 공유 버튼 */}
+            <div className="flex items-center gap-[13px] min-w-[171px] justify-end">
+              {/* 이모지 추가 버튼 */}
+              <div className="relative z-20">
+                <button onClick={toggleEmojiPicker} className={plusButtonClasses}>
+                  <PlusIcon />
+                  추가
                 </button>
-                <button
-                  onClick={handleCopyURL}
-                  className="text-left px-4 py-2 hover:bg-gray-100 w-full"
-                >
-                  URL 복사
-                </button>
+
+                {/* 이모지 피커 */}
+                {showEmojiPicker && (
+                  <div className="absolute top-[calc(100%+8px)] right-0 transform z-30">
+                    <EmojiPicker onEmojiClick={handleEmojiSelect} />
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* 공유 버튼 */}
+              <div className="relative">
+                <button
+                  onClick={toggleShareMenu}
+                  className={shareButtonClasses}
+                  aria-expanded={showShareMenu}
+                >
+                  <img src={sharingIcon} alt="공유" />
+                </button>
+
+                {/* 공유 메뉴 */}
+                {showShareMenu && (
+                  <div className="absolute right-0 top-full mt-2 bg-white shadow-lg rounded-md py-[10px] w-[140px] z-10 text-gray-900 border border-gray-300 text-16-regular">
+                    <button
+                      onClick={handleKakaoShare}
+                      className="text-left px-4 py-2 hover:bg-gray-100 w-full"
+                    >
+                      카카오톡 공유
+                    </button>
+                    <button 
+                      onClick={handleCopyURL}
+                      className="text-left px-4 py-2 hover:bg-gray-100 w-full"
+                    >
+                      URL 복사
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 애니메이션 */}
+      {/* 애니메이션 스타일 */}
       <style>{`
         .emoji-animate {
           transform: scale(1.3) !important;
