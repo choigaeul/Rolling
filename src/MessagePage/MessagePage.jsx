@@ -99,7 +99,7 @@ function Send() {
     <>
       <Header />
       <div className="w-[768px] mx-auto mt-[47px]">
-        <div className="w-[720px] mx-auto">
+        <div className="max-w-[720px] p-6">
           <div>
             <p className="text-24-bold mb-3">From.</p>
             {/* 기존 Input 컴포넌트 대신 간단한 controlled input으로 교체(필요 시 원래 컴포넌트와 연동) */}
