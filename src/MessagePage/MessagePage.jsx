@@ -1,11 +1,11 @@
 // src/pages/Send.jsx
 import React, { useState } from "react";
-import Header from "../Component/Header/HeaderNobutton";
-import Input from "../Component/Text_Field/Input";
-import User from "../Component/Option/User";
-import Select from "../Component/Text_Field/SelectBox";
-import Froala from "../Component/Text_Field/Froala";
-import PrimaryPc from "../Component/Button/Primary-pc";
+import Header from "../Header/HeaderNobutton";
+import Input from "../Text_Field/Input";
+import User from "../Option/User";
+import Select from "../Text_Field/SelectBox";
+import Froala from "../Text_Field/Froala";
+import PrimaryPc from "../Button/Primary-pc";
 
 function Send() {
   // 관계 선택 상태
@@ -40,6 +40,8 @@ function Send() {
       // 추가적으로 Input, Froala 등에서 값을 모아 함께 보냄
     };
 
+    console.log("보낼 payload:", payload);
+
     try {
       const res = await fetch("/api/create-resource", {
         method: "POST",
@@ -47,7 +49,8 @@ function Send() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("서버 에러");
-      await res.json();
+      const data = await res.json();
+      console.log("서버 응답:", data);
       alert("생성 완료!");
     } catch (err) {
       console.error(err);
@@ -100,12 +103,13 @@ function Send() {
               placeholder="폰트를 선택하세요"
             />
           </div>
-          <div>
-            <div onClick={handleCreate} style={{ display: "inline-block", cursor: "pointer" }}>
-              <PrimaryPc text="생성하기" />
-            </div>
+        <div>
+          <div onClick={handleCreate} style={{ display: "inline-block", cursor: "pointer" }}>
+            <PrimaryPc text="생성하기" />
           </div>
         </div>
+        </div>
+
       </div>
     </>
   );

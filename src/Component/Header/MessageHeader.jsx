@@ -4,10 +4,7 @@ import { ReactComponent as PlusIcon } from "../../img/add-24.svg";
 import { ReactComponent as ArrowIcon } from "../../img/arrow_down.svg";
 import EmojiPicker from "emoji-picker-react";
 import { Link } from "react-router-dom";
-import Toast from "../Toast/Toast.jsx"; // Toast 컴포넌트 임포트
-
-// API가 허용하는 이모지 제한 로직 제거 (요청에 따라 모든 이모지 허용)
-// const { EMOJI_TO_ALIAS } from "../../api/recipients"; // 주석 처리 또는 제거
+// 이모지 제한 제거: API가 모든 이모지를 직접 지원하므로 제한 없이 사용 가능
 
 function MessageHeader({
   recipient,
@@ -101,23 +98,19 @@ function MessageHeader({
 
     if (!selectedEmoji) return;
 
-    let userClicks = getUserClicks();
-    const userClickedCount = userClicks[selectedEmoji] !== undefined ? userClicks[selectedEmoji] : 0;
+    let updated;
+    setReactions((prev) => {
+      const existing = prev.find((r) => r.emoji === selectedEmoji);
+      if (existing) {
+        updated = prev.map((r) =>
+          r.emoji === selectedEmoji ? { ...r, count: r.count + 1 } : r
+        );
+      } else {
+        updated = [...prev, { emoji: selectedEmoji, count: 1, id: Date.now() }];
+      }
+      return updated;
+    });
 
-    // 5회 제한 로직 (RollingPage 버전에서 가져옴)
-    if (userClickedCount >= 5) {
-      showPopup("이 이모지는 최대 5번까지만 누를 수 있어요 😅");
-      setShowEmojiPicker(false);
-      return;
-    }
-    
-    // 5회 제한에 걸리지 않으면:
-    
-    // 1. Local Storage 업데이트 (5회 제한 카운터)
-    userClicks = { ...userClicks, [selectedEmoji]: userClickedCount + 1 };
-    setUserClicks(userClicks);
-
-    // 2. 부모 컴포넌트에게 API 호출 위임
     if (typeof onAddReaction === 'function') {
       onAddReaction(selectedEmoji);
     }
@@ -249,13 +242,13 @@ function MessageHeader({
       )}
 
       {/* 토스트 (URL 복사 알림) */}
-      <Toast
+      {/*<Toast
         isOpen={toastOpen}
         onClose={() => setToastOpen(false)}
         message={toastMessage}
         type={toastType}
         duration={2000}
-      />
+      />*/}
 
       <div className="flex items-center justify-center w-full bg-white">
         <div className="flex items-center justify-between w-full max-w-[1200px] px-6 h-[68px]">
@@ -368,8 +361,17 @@ function MessageHeader({
 
                 {/* 이모지 피커 */}
                 {showEmojiPicker && (
-                  <div className="absolute top-[calc(100%+8px)] right-0 transform z-30">
-                    <EmojiPicker onEmojiClick={handleEmojiSelect} />
+                  <div className="absolute top-[calc(100%+8px)] left-1/2 transform -translate-x-1/2 z-30 bg-white rounded-lg shadow-lg border border-gray-200 p-4">
+                    <EmojiPicker 
+                      onEmojiClick={handleEmojiSelect}
+                      searchDisabled={false}
+                      previewConfig={{
+                        showPreview: false
+                      }}
+                      skinTonesDisabled={true}
+                      width="100%"
+                      height="400px"
+                    />
                   </div>
                 )}
               </div>
