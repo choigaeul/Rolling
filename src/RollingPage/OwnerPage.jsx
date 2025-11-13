@@ -51,6 +51,7 @@ function OwnerPage() {
     setSelectedMessage(message);
     setIsOpen(true);
   };
+
   const handleCloseModal = () => {
     setIsOpen(false);
     setSelectedMessage(null);
@@ -132,14 +133,17 @@ function OwnerPage() {
           {/* 카드 영역 */}
           <div className="flex-1 w-full pt-[102px] sm:pt-[147px] lg:pt-[171px] pb-10 relative">
             <div className="mx-auto max-w-[1200px] px-[24px] relative">
-              {/* PC 상단 삭제 버튼 */}
+              
+              {/* PC 상단 삭제 버튼 (div로 변경) */}
               {screenMode === "pc" && (
-                <div className="mx-auto max-w-[1200px] w-full flex justify-end mb-[16px]">
-                  <button onClick={handleOpenPageDeleteModal}>
-                    <DeleteButton text="삭제하기" />
-                  </button>
+                <div
+                  onClick={handleOpenPageDeleteModal}
+                  className="mx-auto max-w-[1200px] w-full flex justify-end mb-[16px] cursor-pointer"
+                >
+                  <DeleteButton text="삭제하기" />
                 </div>
               )}
+
               {/* 카드 리스트 */}
               <div
                 className="
