@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-export default function Input({ text = "이름을 입력해주세요.", onChangeValue }) {
-  const [value, setValue] = useState("");
+export default function Input({ text="이름을 입력해주세요.", value: controlledValue, onChange }) {
+  const [internalValue, setInternalValue] = useState("")
   const [error, setError] = useState(false);
+  const isControlled = controlledValue !== undefined // 외부에서 value를 주면 제어 컴포넌트로 동작
+  const value = isControlled ? controlledValue : internalValue
+
   const handleBlurValidation = (e) => {
     if (!e.target.value) {
       setError(true);
@@ -11,14 +14,11 @@ export default function Input({ text = "이름을 입력해주세요.", onChange
   };
 
   const handleChange = (e) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-
-    // ✅ 부모(CreatePostPage, MessagePage.jsx)로 값 전달
-    if (onChangeValue) {
-      onChangeValue(newValue);
+    if (!isControlled) {
+      setInternalValue(e.target.value) // 비제어 모드일 때 내부 상태 업데이트
     }
-  };
+    onChange?.(e.target.value) // 부모에게 변경 값 전달
+  }
 
   return (
     <>
