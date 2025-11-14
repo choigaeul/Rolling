@@ -106,17 +106,22 @@ function OwnerPage({ recipientId }) {
         }
       }
 
-      const normalizedMessages = (
+      const rawMessages =
         messageData?.results ||
+        messageData?.messages ||
+        messageData?.data ||
         messageData ||
-        []
-      ).map((item, index) => ({
-        id: item.id ?? index,
+        [];
+
+      console.log("🔥 RAW 메시지 원본:", rawMessages);
+      console.log("🔥 RAW 메시지 원본:", rawMessages);
+      console.log("🔥 RAW(JSON):", JSON.stringify(rawMessages, null, 2));
+
+      const normalizedMessages = rawMessages.map((item) => ({
+        id: item.id,
         senderName: item.sender || "익명",
         content: item.content || "",
-        profileImageURL:
-          item.profileImageURL ||
-          `https://placehold.co/40x40?text=${(item.sender || "U")[0]}`,
+        profileImageURL: item.profileImageURL,
         date: item.createdAt
           ? new Date(item.createdAt).toLocaleDateString()
           : "",
@@ -174,8 +179,20 @@ function OwnerPage({ recipientId }) {
     }
   };
 
-  const handleConfirmMessageDelete = () => {
-    setMessages((prev) => prev.filter((msg) => msg.id !== messageToDeleteId));
+  const handleConfirmMessageDelete = async () => {
+    console.log("🟦 실제 삭제될 ID:", messageToDeleteId);
+
+    await fetch(
+      `https://rolling-api.vercel.app/20-4/messages/${messageToDeleteId}/`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    setMessages((prev) =>
+      prev.filter((msg) => Number(msg.id) !== Number(messageToDeleteId))
+    );
+
     handleCloseMessageDeleteModal();
   };
 
@@ -271,12 +288,9 @@ function OwnerPage({ recipientId }) {
               {/* PC 삭제 버튼 */}
               {screenMode === "pc" && (
                 <div className="w-full max-w-[1200px] mx-auto flex justify-end px-[24px] mb-[16px]">
-                  <button
-                    onClick={handleOpenPageDeleteModal}
-                    disabled={deleting}
-                  >
+                  <div onClick={handleOpenPageDeleteModal} disabled={deleting}>
                     <DeleteButton text={deleting ? "삭제 중..." : "삭제하기"} />
-                  </button>
+                  </div>
                 </div>
               )}
 
@@ -312,6 +326,7 @@ function OwnerPage({ recipientId }) {
                       onClick={() => handleCardClick(item)}
                       onDeleteClick={(e) => {
                         e.stopPropagation();
+                        console.log("🟥 카드에서 전달된 ID:", item.id);
                         handleOpenMessageDeleteModal(item.id);
                       }}
                     />
@@ -333,13 +348,13 @@ function OwnerPage({ recipientId }) {
           {screenMode !== "pc" && (
             <div className="fixed bottom-0 left-0 right-0 z-40 px-[24px] pt-0">
               <div className="mx-auto max-w-[1200px] px-0">
-                <button
+                <div
                   onClick={handleOpenPageDeleteModal}
                   disabled={deleting}
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-[12px] text-18-bold shadow-lg disabled:bg-gray-400"
                 >
                   {deleting ? "삭제 중..." : "삭제하기"}
-                </button>
+                </div>
               </div>
             </div>
           )}
@@ -352,17 +367,19 @@ function OwnerPage({ recipientId }) {
           className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center"
           onClick={handleCloseModal}
         >
-          <Modal
-            isOpen={isOpen}
-            onClose={handleCloseModal}
-            message={{
-              sender: selectedMessage.senderName,
-              profileImageURL: selectedMessage.profileImageURL,
-              relationship: selectedMessage.relationship,
-              createdAt: selectedMessage.date,
-              content: selectedMessage.content,
-            }}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <Modal
+              isOpen={isOpen}
+              onClose={handleCloseModal}
+              message={{
+                sender: selectedMessage.senderName,
+                profileImageURL: selectedMessage.profileImageURL,
+                relationship: selectedMessage.relationship,
+                createdAt: selectedMessage.date,
+                content: selectedMessage.content,
+              }}
+            />
+          </div>
         </div>
       )}
 
