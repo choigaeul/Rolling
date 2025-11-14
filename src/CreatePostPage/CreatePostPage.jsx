@@ -56,6 +56,22 @@ function CreatePostPage() {
   const [imageError, setImageError] = useState(null)
   const ROOT_API_URL = 'https://rolling-api.vercel.app';
 
+  const [showHeader, setShowHeader] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 360) {
+        setShowHeader(false);
+      } else {
+        setShowHeader(true);
+      }
+    };
+
+    handleResize(); // 초기 실행
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // 이미지 프리셋 로딩 (기존 로직 유지)
   useEffect(() => {
       const fetchImages = async () => {
@@ -170,50 +186,69 @@ function CreatePostPage() {
     }
   }
 
+  
+
   return (
     <>
-      <div className="max-[360px]:hidden">
-        <HeaderNobutton />
-      </div>
-      <div className="
-             w-full max-w-[768px] min-h-[646px] mx-auto mt-[57px]
-             p-[45px_24px] mb-[120px] text-left
-             flex flex-col items-center
-             "
+      {/* 헤더: 360px 이하에서 숨김 (유지) */}
+      {showHeader && <HeaderNobutton />}
+
+      {/* ✅ 컨테이너: 예전 클래스 구조로 복원 */}
+      <div
+        className="
+          w-full max-w-[768px] mt-[57px]
+          mx-auto px-[24px] text-left
+          flex flex-col items-start
+          max-ta:mt-[57px] max-xt:mt-[49px] max-xs:mt-[50px]
+        "
       >
-        <div className="w-[320px] md:w-[720px] flex flex-col items-start gap-[40px]">
-          <div className="w-full">
-            <div className="mb-[12px] text-gray-900 text-24-bold">To.</div>
-            <Input value={recipientName} onChange={handleNameChange} placeholder="받는 사람 이름을 입력하세요" />
-          </div>
-
-          <section className="w-full flex flex-col gap-[24px]">
-            <div>
-              <p className="text-gray-900 text-24-bold">배경화면을 선택해 주세요.</p>
-              <p className="text-gray-500 text-16-regular">컬러를 선택하거나, 이미지를 선택할 수 있습니다.</p>
-            </div>
-
-            <div>
-              <ToggleButton active={mode} onChange={handleToggleChange} />
-            </div>
-
-            {mode === 'color' ? (
-              <Option activeColor={selectedColor} onChange={handleColorChange} />
-            ) : (
-              <div className="w-full flex flex-col gap-4">
-                {loadingImages ? (
-                  <div>이미지 로딩중...</div>
-                ) : imageError ? (
-                  <div className="text-red-500 text-14-regular">이미지 불러오기 실패: {String(imageError.message || '네트워크 오류')}</div>
-                ) : (
-                  <ImageSelectGrid presets={imagePresets} selectedIndex={selectedIndex} onSelect={handleSelectImage} />
-                )}
-              </div>
-            )}
-          </section>
+        {/* ✅ 상단 입력 영역: 예전 구조 */}
+        <div className="w-full max-w-[768px]">
+          <div className="mb-[12px] text-gray-900 text-24-bold flex flex-col items-start">To.</div>
+          {/* 예전엔 onChangeValue였지만, 현재 컴포넌트 시그니처 유지 */}
+          <Input value={recipientName} onChange={handleNameChange} placeholder="받는 사람 이름을 입력하세요" />
         </div>
 
-        <div className="py-[24px] px-[20px] md:p-[24px] flex justify-center items-center">
+        {/* ✅ 설명 타이틀 영역 */}
+        <div className="mb-[24px] mt-[50px] max-ta:mt-[50px] max-xt:mt-[52px] max-xs:mt-[48px]">
+          <div className="text-gray-900 text-24-bold">
+            배경화면을 선택해 주세요.
+          </div>
+          <div className="text-gray-500 text-16-regular">
+            컬러를 선택하거나, 이미지를 선택할 수 있습니다.
+          </div>
+        </div>
+
+        {/* ✅ 토글 버튼 영역 */}
+        <div className="w-[244px] mb-[45px] max-ta:mb-[45px] max-xt:mb-[40px] max-xs:mb-[28px]">
+          <ToggleButton active={mode} onChange={handleToggleChange} />
+        </div>
+
+        {/* ✅ 옵션/이미지 선택 영역 */}
+        <div className="w-full mb-[48px]">
+          {mode === 'color' ? (
+            <Option activeColor={selectedColor} onChange={handleColorChange} />
+          ) : (
+            <div className="w-full flex flex-col gap-4">
+              {loadingImages ? (
+                <div>이미지 로딩중...</div>
+              ) : imageError ? (
+                <div className="text-red-500 text-14-regular">
+                  이미지 불러오기 실패: {String(imageError.message || '네트워크 오류')}
+                </div>
+              ) : (
+                <ImageSelectGrid
+                  presets={imagePresets}
+                  selectedIndex={selectedIndex}
+                  onSelect={handleSelectImage}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ✅ 생성 버튼 영역: 예전 마진 로직 복원 */}
+        <div className={`w-full h-full py-[24px] mt-[316px] flex justify-center items-center max-ta:mt-[45px] max-xt:mt-[316px] max-xs:mt-[58px]`}>
           <PrimaryMain
             text={submitting ? '생성 중...' : '생성하기'}
             to={null}

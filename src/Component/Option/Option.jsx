@@ -30,7 +30,7 @@ function Option({ activeColor = 'beige', onChange }) {
       {COLOR_ITEMS.map((item) => (
         <div 
           key={item.id}
-          className={`w-[154px] md:w-[168px] h-[154px] md:h-[168px] ${item.className} rounded-xl cursor-pointer flex items-center justify-center transition-all duration-200`}
+          className={`shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] aspect-square w-full md:h-[168px] ${item.className} rounded-xl cursor-pointer flex items-center justify-center transition-all duration-200`}
           onClick={() => handleBoxClick(item.value)}
         >
           {/* 박스 클릭 시 체크 아이콘이 뜨도록 */}
