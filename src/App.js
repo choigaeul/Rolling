@@ -11,6 +11,7 @@ import RecipientPage from './RollingPage/RecipientPage'
 function App() {
   return (
     <Routes>
+      <Route path='/' element={<MainPage/>}/>
       <Route path="/list" element={<ListPage />} />
       <Route path="/recent" element={<RecentPage />} />
       <Route path="/post" element={<CreatePostPage />} />
