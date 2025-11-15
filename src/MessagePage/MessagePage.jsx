@@ -1,7 +1,7 @@
 // src/pages/Send.jsx
 import React, { useState, useEffect } from "react";
 import Header from "../Component/Header/HeaderNobutton";
-// import Input from "../Component/Text_Field/Input"; // 기존 Input 대신 간단한 controlled input 사용
+import Input from "../Component/Text_Field/Input"; 
 import User from "../Component/Option/User";
 import Select from "../Component/Text_Field/SelectBox";
 import Froala from "../Component/Text_Field/Froala";
@@ -115,21 +115,19 @@ finalContent = match[1].trim();
   };
 
   console.log(navigate);
-  const firstFive = profileImages.slice(0, 5);
-  const secondFive = profileImages.slice(5, 10);
+  const imagesToDisplay = profileImages.slice(0, 10);
   return (
     <>
       <Header />
-      <div className="max-w-[768px] mx-auto mt-[47px] px-6 ">
+      <div className="max-w-[768px] mx-auto mt-[47px] px-6 max-xs:px-5">
         <div className="w-full">
           <div>
             <p className="text-24-bold mb-3">From.</p>
             {/* 기존 Input 컴포넌트 대신 간단한 controlled input으로 교체(필요 시 원래 컴포넌트와 연동) */}
-            <input
+            <Input
               value={sender}
-              onChange={(e) => setSender(e.target.value)}
-              placeholder="보내는 사람 이름"
-              className="w-full border rounded p-2"
+              onChange={(value) => setSender(value)}
+              placeholder="보내는 사람 이름을 입력하세요"
             />
           </div>
 
@@ -148,38 +146,20 @@ finalContent = match[1].trim();
                 </p>
 
                 {/* ⭐ 여기서 그룹 2개를 flex로 배치 */}
-                <div className="flex flex-row gap-1 max-xs:flex-col max-xt:flex-col">
-                  {/* 첫 번째 5개 그룹 */}
-                  <div className="grid grid-cols-5 gap-1">
-                    {firstFive.map((imageUrl, index) => (
-                      <img
-                        key={index}
-                        src={imageUrl}
-                        className={`w-[56px] rounded-full object-cover cursor-pointer ${
-                          selectedProfileImage === imageUrl
-                            ? "border-[3px] border-purple-600 p-1"
-                            : "opacity-70 hover:opacity-100"
+                <div className="flex flex-wrap gap-1 max-xs:gap-0.5">
+                  {imagesToDisplay.map((imageUrl, index) => (
+                    <img
+                      alt={`프로필 이미지 ${index + 1}`}
+                      key={index}
+                      src={imageUrl}
+                      className={`w-[56px] h-[56px] rounded-full object-cover cursor-pointer max-xs:w-[40px] max-xs:h-[40px] ${
+                        selectedProfileImage === imageUrl
+                          ? "border-[3px] border-purple-600 p-1"
+                          : "opacity-70 hover:opacity-100"
                         }`}
-                        onClick={() => setSelectedProfileImage(imageUrl)}
-                      />
-                    ))}
-                  </div>
-
-                  {/* 두 번째 5개 그룹 */}
-                  <div className="grid grid-cols-5 gap-1">
-                    {secondFive.map((imageUrl, index) => (
-                      <img
-                        key={index}
-                        src={imageUrl}
-                        className={`w-[56px] rounded-full object-cover cursor-pointer ${
-                          selectedProfileImage === imageUrl
-                            ? "border-[3px] border-purple-600 p-1"
-                            : "opacity-70 hover:opacity-100"
-                        }`}
-                        onClick={() => setSelectedProfileImage(imageUrl)}
-                      />
-                    ))}
-                  </div>
+                      onClick={() => setSelectedProfileImage(imageUrl)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
