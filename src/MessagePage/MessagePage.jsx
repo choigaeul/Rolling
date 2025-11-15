@@ -5,7 +5,7 @@ import Header from "../Component/Header/HeaderNobutton";
 import User from "../Component/Option/User";
 import Select from "../Component/Text_Field/SelectBox";
 import Froala from "../Component/Text_Field/Froala";
-import PrimaryMain from "../Component/Button/Primary-main";
+import Primarypc from "../Component/Button/Primary-pc";
 import apiClient from "../api/client";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -80,16 +80,15 @@ function Send() {
       return;
     }
 
-    let finalContent = messageContent.trim();
-   
-    const pTagRegex = /^<p[^>]*>(.*?)<\/p>$/si;
-    const match = finalContent.match(pTagRegex);
+let finalContent = messageContent.trim();
+const pTagRegex = /^<p[^>]*>(.*?)<\/p>$/si;
+const match = finalContent.match(pTagRegex);
 
-    if (match && match[1] !== undefined) {
-      // 캡처 그룹 1 (태그 안의 실제 내용)을 사용
-      finalContent = match[1].trim(); 
-    }
-    
+ if (match && match[1] !== undefined) {
+// 캡처 그룹 1 (태그 안의 실제 내용)을 사용
+finalContent = match[1].trim(); 
+ }
+  
     const contentToSend = finalContent.trim() || "내용 없음";
     
     const payload = {
@@ -116,6 +115,8 @@ function Send() {
   };
 
   console.log(navigate);
+  const firstFive = profileImages.slice(0, 5);
+  const secondFive = profileImages.slice(5, 10);
   return (
     <>
       <Header />
@@ -134,31 +135,51 @@ function Send() {
 
           <div className="mt-[50px] w-full">
             <p className="text-24-bold mb-3">프로필 이미지</p>
-            <div className="w-[80px] h-[80px] flex items-center gap-8">
-              <User selectedImageUrl={selectedProfileImage} />
+
+            <div className="flex justify-start items-center gap-8">
+              <User
+                className="w-[80px] h-[80px]"
+                selectedImageUrl={selectedProfileImage}
+              />
+
               <div>
-                <p className="text-16-regular text-gray-500 inline-block w-[200px]">
+                <p className="text-16-regular text-gray-500 mb-4">
                   프로필 이미지를 선택해주세요!
                 </p>
 
-                <div className="flex gap-1 mt-2 max-w-[500px]"> 
-                  {profileImages.map((imageUrl, index) => (
-                    <img
-                      key={index}
-                      src={imageUrl}
-                      alt={`프로필 이미지 ${index + 1}`}
-                      className={`w-[56px] h-[56px] rounded-full object-cover cursor-pointer transition-all ${
-                        selectedProfileImage === imageUrl
-                          ? "border-[3px] border-purple-600 p-1"
-                          : "opacity-70 hover:opacity-100"
-                      }`}
-                      onClick={() => setSelectedProfileImage(imageUrl)}
-                    />
-                  ))}
+                {/* ⭐ 여기서 그룹 2개를 flex로 배치 */}
+                <div className="flex flex-row gap-1 max-xs:flex-col max-xt:flex-col">
+                  {/* 첫 번째 5개 그룹 */}
+                  <div className="grid grid-cols-5 gap-1">
+                    {firstFive.map((imageUrl, index) => (
+                      <img
+                        key={index}
+                        src={imageUrl}
+                        className={`w-[56px] rounded-full object-cover cursor-pointer ${
+                          selectedProfileImage === imageUrl
+                            ? "border-[3px] border-purple-600 p-1"
+                            : "opacity-70 hover:opacity-100"
+                        }`}
+                        onClick={() => setSelectedProfileImage(imageUrl)}
+                      />
+                    ))}
+                  </div>
 
-                  {profileImages.length === 0 && (
-                    <p className="text-gray-400">이미지를 불러오는 중입니다...</p>
-                  )}
+                  {/* 두 번째 5개 그룹 */}
+                  <div className="grid grid-cols-5 gap-1">
+                    {secondFive.map((imageUrl, index) => (
+                      <img
+                        key={index}
+                        src={imageUrl}
+                        className={`w-[56px] rounded-full object-cover cursor-pointer ${
+                          selectedProfileImage === imageUrl
+                            ? "border-[3px] border-purple-600 p-1"
+                            : "opacity-70 hover:opacity-100"
+                        }`}
+                        onClick={() => setSelectedProfileImage(imageUrl)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -198,12 +219,12 @@ function Send() {
 
           
             <div
-              className="mb-[60px] inline-block mx-auto max-xt:max-w-[320px] text-center"
+              className="w-[100%] mb-[60px] inline-block mx-auto text-center"
               onClick={handleCreate}
               style={{ cursor: "pointer" }}
             >
               {/* PrimaryPc는 w-full이므로 부모 div의 max-w-md 크기로 맞춰집니다. */}
-              <PrimaryMain text="생성하기" to="" />
+              <Primarypc text="생성하기" to="" />
             </div>
           
         </div>

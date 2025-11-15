@@ -6,7 +6,7 @@ function HeaderNobutton() {
   return (
     <>
       <div className="w-full border-b border-gray-200">
-       <header className="bg-white sticky top-0 z-50 max-w-[1200px] h-[64px] mx-auto max-xt:max-w-[720px]">
+       <header className="bg-white sticky top-0 z-50 max-w-[1200px] h-[64px] mx-auto">
           <div className="w-full h-full px-[24px] flex items-center justify-between">
             {/* Rolling 로고 영역 */}
             <div className="flex items-center justify-center justify-items-center z-60 h-[30px]">
