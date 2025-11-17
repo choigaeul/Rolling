@@ -17,7 +17,7 @@ export default function MainPage() {
             </span>
             <p className="inline-flex self-start text-24-bold text-gray-900 mt-[16px] mb-[8px] max-xt:text-18-bold">
               누구나 손쉽게, 온라인
-              <br className="max-xt:hidden" />
+              <br className="max-xt:hidden" />{" "}
               롤링 페이퍼를 만들 수 있어요.
             </p>
             <p className="text-gray-500 text-18-bold max-xt:text-15-bold">
@@ -40,7 +40,7 @@ export default function MainPage() {
             </span>
             <p className="inline-flex self-start text-24-bold text-gray-900 mt-[16px] mb-[8px] max-xt:text-18-bold flex-shrink-0">
               서로에게 이모지로 감정을
-              <br className="max-xt:hidden" />
+              <br className="max-xt:hidden" />{" "}
               표현해보세요.
             </p>
             <p className="text-gray-500 text-18-bold max-xt:text-15-bold">
@@ -54,7 +54,7 @@ export default function MainPage() {
           
 
             {/* 팝오버 카드 */}
-            <div className="max-w-[293px] ml-[30px] mr-[67px] mt-[-12px] max-xt:mt-[-12px]">
+            <div className="max-w-[293px] ml-[42px] mr-[67px] mt-[-12px] max-xt:mt-[-12px] max-xt:ml-[35px] max-xs:ml-[24px]">
                 <img src={introImg03} alt="" className="w-full"/>
             </div>
           </div>

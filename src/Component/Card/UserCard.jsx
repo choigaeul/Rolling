@@ -1,14 +1,7 @@
 import React from "react";
 
 // 더미 데이터를 별도 관리 파일로 뺄지 여부 고민!!!!
-export const defaultMessage = {
-  sender: "이름",
-  relationship: "관계",
-  content: "메시지 내용",
-  profileImageURL:
-    "https://fastly.picsum.photos/id/311/200/200.jpg?hmac=CHiYGYQ3Xpesshw5eYWH7U0Kyl9zMTZLQuRDU4OtyH8",
-  createdAt: "2025-11-11",
-};
+
 
 const RELATIONSHIP_COLORS = {
   친구: {
@@ -36,7 +29,7 @@ const RELATIONSHIP_COLORS = {
 
 // 카드 컴포넌트
 function UserCard({ message, onClick }) {
-  const data = message || defaultMessage;
+  const data = message;
   const relationshipStyle = RELATIONSHIP_COLORS[data.relationship] || RELATIONSHIP_COLORS.default;
 
   return (

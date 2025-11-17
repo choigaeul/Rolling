@@ -14,7 +14,7 @@ import HeaderNobutton from "../Component/Header/HeaderNobutton"; // OwnerPage와
 import MobileHeader from "../Component/Header/MobileHeader";
 import MessageHeader from "../Component/Header/MessageHeader";
 import Modal from "../Component/Modal/Modal";
-import UserCard, { defaultMessage } from "../Component/Card/UserCard"; // 메시지 삭제 기능이 없는 UserCard 유지
+import UserCard from "../Component/Card/UserCard"; // 메시지 삭제 기능이 없는 UserCard 유지
 import AddCard from "../Component/Card/AddCard"; // 새 메시지 작성 기능 유지
 
 // **[추가]** OwnerPage에서 가져온 색상 매핑
@@ -125,8 +125,7 @@ function RecipientPage() {
   }, [loadData]);
 
   // 랜더링 데이터 선택: 메시지가 없거나 로딩 실패 시 더미 데이터 표시
-  const messagesToRender =
-    messages && messages.length > 0 ? messages : Array(6).fill(defaultMessage);
+  const messagesToRender =messages ;
 
   // 작성자 프로필 아바타
   const topAvatars = useMemo(() => {
@@ -153,12 +152,9 @@ function RecipientPage() {
   // ====== 반응(이모지) 추가 ======
   const handleAddReaction = async (emoji) => {
     if (!currentRecipientId) return;
-
     const emojiValue = emoji.emoji || emoji;
-
     try {
       const alias = EMOJI_TO_ALIAS[emojiValue] || emojiValue;
-
       await reactToRecipient(currentRecipientId, {
         emoji: alias,
         type: "increase",
@@ -228,7 +224,11 @@ function RecipientPage() {
         <div className="fixed top-0 left-0 w-full shadow-sm z-30 bg-white">
           <div className="w-full mx-auto">
             {screenMode === "mobile" ? (
-              <MobileHeader hideCreateButton />
+              <MobileHeader 
+              hideCreateButton
+              onAddReaction={handleAddReaction}
+              recipient={recipient}
+              reactions={reactions} />
             ) : (
               // OwnerPage와 동일한 헤더 컴포넌트 사용
               <HeaderNobutton /> 
@@ -251,16 +251,16 @@ function RecipientPage() {
 
         {/* 메시지 카드 영역 (OwnerPage의 z-10 구조 유지) */}
         <div className="flex flex-col min-h-screen relative z-10">
-          <div className="flex-1 max-w-[1200px] mx-auto pt-[102px] sm:pt-[147px] lg:pt-[171px] pb-10 relative">
+          <div className="flex-1 w-full max-w-[1200px] mx-auto pt-[102px] sm:pt-[147px] lg:pt-[171px] pb-10 relative">
             {loading && <p className="text-center mt-10">로딩 중...</p>}
             {error && !loading && (
               <div className="text-center text-red-500 mt-10">데이터를 불러오지 못했습니다.</div>
             )}
 
             {/* 카드 목록 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] mt-[28px] relative z-10 px-[24px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[24px] mt-[28px] relative z-10 px-[24px] ">
               {/* 메시지 추가 버튼 (RecipientPage 기능 유지) */}
-              <div onClick={handleAddCardClick} className="cursor-pointer">
+              <div onClick={handleAddCardClick} className="cursor-pointer w-full min-w-0">
                 <AddCard />
               </div>
               
@@ -268,7 +268,7 @@ function RecipientPage() {
               {hasMessages ? (
                 messages.map((message) => (
                     <UserCard
-                      key={message.id}
+                      key={message.id} className="min-w-0"
                       message={message}
                       onClick={() => handleCardClick(message)}
                     />

@@ -90,7 +90,7 @@ function RollingSwiper({ cards, sliderKey, viewportWidth }) {
       const currentIndex = swiper.activeIndex
       // 모든 화면에서 마지막 카드가 완전히 보이는 위치까지만 허용
       const clamped = Math.min(currentIndex, maxStartIndexForLastCard)
-      
+
       // 터치 스크롤로 인한 이동인 경우, 최대 인덱스를 초과하면 제한
       if (clamped !== currentIndex && currentIndex > maxStartIndexForLastCard) {
         // 최대 인덱스를 초과했으면 최대 인덱스로 이동
@@ -111,7 +111,7 @@ function RollingSwiper({ cards, sliderKey, viewportWidth }) {
       // activeIndex를 우선 사용 (swiper.activeIndex와 동기화되어 있음)
       const currentIndex = activeIndex
       let step = CARDS_PER_GROUP
-      
+
       // 오른쪽으로 이동할 때 마지막 처리
       if (delta > 0 && totalSlides > visibleCount) {
         if (currentIndex < maxStartIndexForLastCard) {
@@ -127,10 +127,10 @@ function RollingSwiper({ cards, sliderKey, viewportWidth }) {
       // 목표 인덱스 계산
       const proposedTarget = currentIndex + delta * step
       let target = Math.max(proposedTarget, 0)
-      
+
       // 마지막 카드가 완전히 보이는 위치까지만 이동 허용
       target = Math.min(target, maxStartIndexForLastCard)
-      
+
       // 실제로 이동할 수 있는지 확인
       if (target !== currentIndex) {
         const originalSlidesPerGroup = swiper.params.slidesPerGroup
@@ -160,28 +160,28 @@ function RollingSwiper({ cards, sliderKey, viewportWidth }) {
       const goingLeft = delta < 0;
 
       // Swiper 6부터는 isEnd, isBeginning이 제공됨.
-      const reachedEnd = swiper.isEnd || swiper.activeIndex >= maxStartIndexForLastCard; 
+      const reachedEnd = swiper.isEnd || swiper.activeIndex >= maxStartIndexForLastCard;
       const reachedBeginning = swiper.isBeginning || swiper.activeIndex === 0;
 
       let shouldPreventDefault = true;
 
       if (goingRight && reachedEnd) {
         shouldPreventDefault = false;
-      } 
+      }
       else if (goingLeft && reachedBeginning) {
         shouldPreventDefault = false;
       }
-  
+
       if (shouldPreventDefault) {
-        event.preventDefault(); 
+        event.preventDefault();
         event.stopPropagation();
         slideBy(delta);
       }
-      
+
     },
     [isDesktop, slideBy, maxStartIndexForLastCard]
   );
-  
+
   useEffect(() => {
     const element = swiperShellRef.current;
     if (!element || !isDesktop) return undefined;
@@ -202,9 +202,9 @@ function RollingSwiper({ cards, sliderKey, viewportWidth }) {
   }, [isDesktop, isMobile, viewportWidth])
 
   return (
-    <div 
-      ref={swiperShellRef} 
-      className={`relative flex items-center ${styles.swiperShell}`} 
+    <div
+      ref={swiperShellRef}
+      className={`relative flex items-center ${styles.swiperShell}`}
     >
       {showNavigation && activeIndex > 0 && (
         <div
@@ -267,21 +267,21 @@ function RollingSwiper({ cards, sliderKey, viewportWidth }) {
         // 오른쪽 화살표 표시 조건
         return activeIndex < maxStartIndexForLastCard
       })() && (
-        <div
-          className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer"
-          onClick={() => slideBy(1)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              slideBy(1)
-            }
-          }}
-        >
-          <RightArrow />
-        </div>
-      )}
+          <div
+            className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer"
+            onClick={() => slideBy(1)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                slideBy(1)
+              }
+            }}
+          >
+            <RightArrow />
+          </div>
+        )}
     </div>
   );
 }
@@ -436,8 +436,8 @@ function ListPage() {
 
         const errorMessage = err?.response?.data
           ? Object.entries(err.response.data)
-              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
-              .join("\n")
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
+            .join("\n")
           : err?.message || "알 수 없는 오류가 발생했습니다.";
         setError(new Error(errorMessage));
         setPopularCards([]);
@@ -464,7 +464,7 @@ function ListPage() {
 
       <main className="flex flex-col items-center w-full pt-[50px] pb-6 gap-[50px] px-[5%] overflow-visible max-ta:px-0 max-ta:overflow-hidden max-xt:w-full max-xt:pt-[50px] max-xt:items-start max-xt:gap-[74px] max-xs:pt-[50px] max-xs:gap-[74px] max-xs:items-start">
         {/* **[참고]** max-w 컨테이너와 패딩을 분리하기 위한 구조 변경 */}
-        <section className="w-full flex flex-col gap-4 max-w-[1160px] max-ta:max-w-full"> 
+        <section className="w-full flex flex-col gap-4 max-w-[1160px] max-ta:max-w-full">
           <div className="max-xt:px-6 max-xs:px-5"> {/* 제목용 패딩 래퍼 */}
             <div className={`flex items-center justify-between max-xt:flex-col max-xt:items-start gap-4 ${styles.sectionHeaderRow}`}>
               <h2 className="mb-4 text-24-bold text-gray-900 max-xt:text-24-bold max-xs:text-[20px] max-xs:leading-[30px] max-xs:mb-3">
@@ -489,15 +489,27 @@ function ListPage() {
         <section className="w-full flex flex-col gap-4 max-w-[1160px] max-ta:max-w-full">
           <div className="max-xt:px-6 max-xs:px-5"> {/* 제목용 패딩 래퍼 */}
             <div className={`flex items-center justify-between max-xt:flex-col max-xt:items-start gap-4 ${styles.sectionHeaderRow}`}>
-              <h2 
-                onClick={() => navigate('/recent')}
-                className="mb-4 text-24-bold text-gray-900 cursor-pointer hover:text-purple-600 transition-colors max-xt:text-24-bold max-xs:text-[20px] max-xs:leading-[30px] max-xs:mb-3"
+              <h2
+                className="mb-4 text-24-bold text-gray-900 max-xt:text-24-bold max-xs:text-[20px] max-xs:leading-[30px] max-xs:mb-3"
               >
                 최근에 만든 롤링 페이퍼 ⭐️️
                 {!loading && !error && (
                   <span className="text-16-regular text-gray-500 ml-2">({recentCards.length}개)</span>
                 )}
               </h2>
+              <button
+                onClick={() => navigate('/recent')}
+                className="
+                            hover:text-purple-600 
+                            transition-colors
+                            relative
+                            after:content-['>']
+                            after:ml-1
+                            after:group-hover:text- purple-600
+                          "
+                >
+                전체보기
+              </button>
             </div>
             {loading ? (
               <p className="text-14-regular text-gray-500 translate-x-6 max-ta:translate-x-0 text-center">데이터를 불러오는 중입니다...</p>

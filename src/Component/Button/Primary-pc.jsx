@@ -1,14 +1,18 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-function PrimaryPc({ text = "버튼", to = "/", disabled = false }) {
+function PrimaryPc({ text = "버튼", to = "/", disabled = false, onClick }) {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    if (!disabled && to) {
-      navigate(to);
-    }
-  };
+  const handleClick = (event) => {
+    if (disabled) return;
+    if (onClick) {
+      onClick(event);
+    }
+    if (to && to !== "/" && typeof to === 'string') {
+      navigate(to);
+    }
+  };
 
   return (
     <>

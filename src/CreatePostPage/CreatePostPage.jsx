@@ -163,6 +163,7 @@ function CreatePostPage() {
 
       if (newId) {
         // navigate(`/post/${newId}`, { replace: true });
+        localStorage.setItem(`owner_${newId}`, "true");
         navigate(`/post/${newId}/owner`, { replace: true });
       } else {
         alert("ID를 확인할 수 없어 리스트로 이동합니다.");
@@ -198,9 +199,10 @@ function CreatePostPage() {
     } finally {
       setSubmitting(false);
     }
+    
   };
 
-  
+  console.log(handleSubmit)
 
   return (
     <>
